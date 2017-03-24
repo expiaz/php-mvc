@@ -6,9 +6,9 @@ use Core\Mvc\Model\Model;
 
 class UserModel extends Model {
 
-    public function __construct($table = 'user')
+    public function __construct()
     {
-        parent::__construct($table);
+        parent::__construct();
     }
 
 }

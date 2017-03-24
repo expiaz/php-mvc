@@ -54,7 +54,6 @@ class Dispatcher{
         $controller = $ctrl ?? $this->_request['controller'];
         $action = $act ?? $this->_request['action'];
         $param = $p ?? $this->_request['param'];
-        $tableName = strtolower($controller);
 
         $controllerClass = ucfirst(strtolower($controller)) . 'Controller';
         $actionName = $action;
@@ -76,34 +75,41 @@ class Dispatcher{
                     : [$action];
             }
 
-            //change require
-            //$fileName = CONTROLLER . $controllerClass . '.php';
         }
 
         Query::setUrl($this->_url);
         Query::setController($controller);
 
-        $modelClass = ucfirst(strtolower($controller)) . 'Model';
-        $modelFileName = MODEL . $modelClass . '.php';
-        if(!file_exists($modelFileName)){
-            $modelClass = 'IndexModel';
-            //$modelFileName = MODEL . $modelClass . '.php';
-        }
+        $this->load($controllerClass, $actionName, $param);
 
+        //new $controllerClass(new $modelClass($tableName), $actionName, $param, $http);
+
+    }
+
+    private function load($controller, $action, $param){
+        $controllerNs = "\\App\\Controller\\{$controller}";
+        $controllerClass = new $controllerNs();
+        if(!$this->methodExists($controllerClass, $action)){
+            $param = array_merge([$action],$param);
+            $action = 'index';
+        }
         $http = [
             'GET' => array_slice($_GET,1),
             'POST' => $_POST
         ];
-
-        $controllerClass = "\\App\\Controller\\{$controllerClass}";
-        $modelClass = "\\App\\Model\\{$modelClass}";
-
-        new $controllerClass(new $modelClass($tableName), $actionName, $param, $http);
-
+        Query::setAction($action);
+        Query::setParam($param);
+        Query::setHttp($http);
+        $controllerClass->$action($param, $http);
     }
 
-    private function load($controller, $action){
-
+    private function methodExists($class, $method){
+        $method = strtolower($method);
+        $methods = array_map('strtolower', get_class_methods($class));
+        if(in_array($method,$methods)){
+            return true;
+        }
+        return false;
     }
 
 }

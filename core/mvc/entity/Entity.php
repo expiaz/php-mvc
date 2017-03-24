@@ -5,6 +5,6 @@ abstract class Entity{
 
     public $_modified = [];
 
-    abstract function setter($property,$value);
+    abstract function __set($property,$value);
 
 }

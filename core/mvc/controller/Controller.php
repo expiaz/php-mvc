@@ -5,21 +5,17 @@ use Core\Http\Query;
 
 abstract class Controller{
 
-    private $model;
+    private $model = null;
 
-    public function __construct($model, $action, $param, $http)
+    public function __construct()
     {
-        $this->model = $model;
-        if($this->methodExists($action) === false){
-            $param = array_merge([$action],$param);
-            $action = 'index';
+        $modelClass = ucfirst(strtolower(str_replace('Controller','',substr(get_class($this), strrpos(get_class($this),'\\') + 1)))) . 'Model';
+        if(file_exists(MODEL . $modelClass . '.php')){
+            $modelNs = "App\\Model\\{$modelClass}";
+            $this->model = new $modelNs();
         }
 
-        Query::setAction($action);
-        Query::setParam($param);
-        Query::setHttp($http);
-
-        if(DEV){
+        /*if(DEV){
             echo Controller::class . ' extended from ' . get_class($this). ' calling ' . $action . ' with ';
             print_r($param);
             echo '<br>';
@@ -27,10 +23,14 @@ abstract class Controller{
             echo 'query : ' . Query::getQueriedUrl() . '<br>';
             echo 'http : ' . Query::getHttpHeaders() . '<br>';
             echo '<br>';
-        }
+        }*/
 
 
-        $this->$action($param,$http);
+        //$this->$action($param,$http);
+    }
+
+    public static function load($action, $param, $http){
+
     }
 
     private function methodExists($method){

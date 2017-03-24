@@ -6,13 +6,24 @@ use Core\Mvc\Entity\Entity;
 
 class UserEntity extends Entity {
 
-    private $id;
-    private $login;
-    private $password;
-    private $pseudo;
-    private $mail;
+    public $id;
+    public $login;
+    public $password;
+    public $pseudo;
+    public $mail;
 
     public function setter($property,$value){
+        if (property_exists($this, $property)) {
+            if($this->$property !== $value){
+                $this->$property = $value;
+                $this->_modified[$property] = $value;
+            }
+        }
+    }
+
+    public function __set($property, $value)
+    {
+        // TODO: Implement __set() method.
         if (property_exists($this, $property)) {
             if($this->$property !== $value){
                 $this->$property = $value;
@@ -24,6 +35,8 @@ class UserEntity extends Entity {
     public function getInfos(){
         return $this->id . ' : ' . $this->pseudo;
     }
+
+
 
     /**
      * @return mixed

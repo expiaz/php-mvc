@@ -6,9 +6,9 @@ use Core\Mvc\View\View;
 
 class IndexController extends Controller {
 
-    public function __construct($model, $action, $param, $http)
+    public function __construct()
     {
-        parent::__construct($model, $action, $param, $http);
+        parent::__construct();
     }
 
     public function index($param, $http){

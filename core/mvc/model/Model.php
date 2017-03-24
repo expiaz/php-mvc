@@ -12,13 +12,13 @@ abstract class Model{
     protected $table;
     protected $entity = null;
 
-    public function __construct($table = 'user')
+    public function __construct()
     {
         $this->_pdo = Database::getInstance();
-        $this->table = $table;
-        $entityClass = ucfirst(strtolower($table));
+        $this->table = strtolower(str_replace('Model','',substr(get_class($this), strrpos(get_class($this),'\\') + 1)));
+        $entityClass = ucfirst($this->table);
         if(file_exists(ENTITY . $entityClass . 'Entity.php')){
-            require_once(ENTITY . $entityClass . 'Entity.php');
+            //require_once(ENTITY . $entityClass . 'Entity.php');
             $this->entity = "\\App\\Entity\\{$entityClass}Entity";
         }
     }
