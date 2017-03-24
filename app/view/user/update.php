@@ -1,12 +1,11 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
+<?php
+use Core\Form\Form;
+
+$form = Form::buildFromEntity($user ,[
+    'method' => 'POST'
+]);
+
+?>
+
 <h1>Edit <?=$user->pseudo?></h1>
-
 <?=$form?>
-
-</body>
-</html>

@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
+<?php
+use Core\Http\Query;
 
+$updatePath = Query::build(Query::getController(), 'update', $user->id);
+
+?>
 <?php if($error): ?>
     <h1><?= $error; ?></h1>
 <?php else: ?>
@@ -12,6 +11,3 @@
     <p>Informations : (<a href="<?= $updatePath ?>">edit</a>)</p>
     <?= $user->getInfos(); ?>
 <?php endif; ?>
-
-</body>
-</html>

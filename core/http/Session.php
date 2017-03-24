@@ -40,7 +40,7 @@ abstract class Session{
         if(self::$_on === false)
             return;
 
-        if(isset($_SESSION[k])){
+        if(isset($_SESSION[$k])){
             unset($_SESSION[$k]);
         }
     }

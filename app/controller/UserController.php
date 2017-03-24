@@ -19,10 +19,17 @@ class UserController extends Controller {
     public function index($p,$h){
         $id = Session::get('connected');
         if($id){
-            return View::render('/user/profile', [
+            return View::render('user/profile', [
                 'user' => $this->getModel()->getById($id)
             ]);
         }
+        return Router::redirect([
+            'controller' => 'index',
+            'action' => 'index'
+        ]);
+    }
+
+    public function all($p,$h){
         return View::render('/user/index', [
             'users' => $this->getModel()->getAll()
         ]);
@@ -33,8 +40,7 @@ class UserController extends Controller {
         $u = $this->getModel()->getById($id);
         if($u){
             return View::render('/user/profile', [
-                'user' => $u,
-                'updatePath' => Query::build(Query::getController(), 'update', $u->id)
+                'user' => $u
             ]);
         }
         return View::render('/user/profile', [
@@ -46,8 +52,10 @@ class UserController extends Controller {
         $m = $this->getModel();
         if($h['POST']){
             $user = $m->getById($h['POST']['id']);
-            $user->setPseudo($h['POST']['pseudo']);
-            $user->setMail($h['POST']['mail']);
+            foreach ($h['POST'] as $set => $v){
+                $setter = 'set' . ucfirst($set);
+                $user->$setter($v);
+            }
             $m->update($user);
             return Router::redirect([
                 'controller' => 'user',
@@ -57,10 +65,7 @@ class UserController extends Controller {
         }
         $u = $m->getById($p['id']);
         return View::render('user/update', [
-            'user' => $u,
-            'form' => Form::build($u,[
-                'method' => 'POST'
-            ])
+            'user' => $u
         ]);
     }
 

@@ -7,6 +7,8 @@ define('CONTROLLER', APP . 'controller' . DS);
 define('MODEL', APP . 'model' . DS);
 define('ENTITY', APP . 'entity' . DS);
 define('VIEW', APP . 'view' . DS);
+define('LAYOUT', VIEW . 'layout' . DS);
+
 
 
 define('CORE_MVC', CORE . 'mvc' . DS);

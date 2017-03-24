@@ -12,15 +12,15 @@ class Field{
     private $id;
     private $class;
 
-    public function __construct()
+    public function __construct($type = 'text', $name = 'input', $value = null, $placeholder = null, $required = false, $id = null, $class = null)
     {
-        $this->type = 'text';
-        $this->name = 'input';
-        $this->value = null;
-        $this->placeholder = null;
-        $this->required = false;
-        $this->id = null;
-        $this->class = null;
+        $this->type = $type;
+        $this->name = $name;
+        $this->value = $value;
+        $this->placeholder = $placeholder;
+        $this->required = $required;
+        $this->id = $id;
+        $this->class = $class;
     }
 
     public function type($type){

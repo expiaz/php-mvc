@@ -6,13 +6,13 @@ use Core\Mvc\Entity\Entity;
 
 abstract class Form{
 
-    public static function build(Entity $o, $opts){
+    public static function buildFromEntity(Entity $o, $opts){
         $htmlFields = [];
         $fields = get_class_vars(get_class($o));
 
         foreach ($fields as $prop => $value){
             $value = $o->$prop;
-            if(!is_array($value)){
+            if(!is_array($value) && !is_object($value)){
                 $f = new Field();
                 if($prop === 'id'){
                     $f->type('hidden')
@@ -45,6 +45,26 @@ abstract class Form{
         }
         $out .= ">";
         $out .= implode('',$htmlFields);
+        $out .= "<br/><input type=\"submit\" value=\"submit\"/></form>";
+
+        return $out;
+    }
+
+    public static function buildFromScratch(array $fields, $opts){
+
+        $out = "<form";
+        $sample = $opts['method'] ?? 'POST';
+        $out .= " method=\"{$sample}\"";
+        $sample = $opts['action'] ?? '';
+        $out .= " action=\"{$sample}\"";
+        if(isset($opts['class'])){
+            $out .= " class=\"{$opts['class']}\"";
+        }
+        if(isset($opts['id'])){
+            $out .= " id=\"{$opts['id']}\"";
+        }
+        $out .= ">";
+        $out .= implode('',array_map(function($f){ return $f->create(true); },$fields));
         $out .= "<br/><input type=\"submit\" value=\"submit\"/></form>";
 
         return $out;

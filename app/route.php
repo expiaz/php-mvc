@@ -4,7 +4,9 @@ use Core\Http\Router;
 
 Router::on('/', 'index@index');
 
-Router::on('/users/', 'user@index');
+Router::on('/users/', 'user@all');
+
+Router::on('/user/', 'user@index');
 
 Router::on('/user/:id', 'user@profile');
 
