@@ -12,7 +12,7 @@ class IndexController extends Controller {
     }
 
     public function index($param, $http){
-        View::render('index',[
+        return View::render('index',[
            'location' => 'index',
            'message' => 'greeting'
         ]);

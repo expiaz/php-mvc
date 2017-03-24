@@ -46,8 +46,6 @@ class Dispatcher{
             default:
                 $this->find();
         }
-
-
     }
 
     private function find($ctrl = null, $act = null, $p = null){
@@ -81,9 +79,6 @@ class Dispatcher{
         Query::setController($controller);
 
         $this->load($controllerClass, $actionName, $param);
-
-        //new $controllerClass(new $modelClass($tableName), $actionName, $param, $http);
-
     }
 
     private function load($controller, $action, $param){

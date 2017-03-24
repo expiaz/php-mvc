@@ -8,7 +8,7 @@
     <p>users : </p>
     <ul>
     <?php foreach($users as $u): ?>
-        <li><?=$u->getPseudo()?></li>
+        <li><a href="<?=$u->getProfileLink();?>"><?=$u->pseudo?></a></li>
     <?php endforeach; ?>
     </ul>
 </body>

@@ -12,6 +12,7 @@ define('VIEW', APP . 'view' . DS);
 define('CORE_MVC', CORE . 'mvc' . DS);
 define('CORE_HTTP', CORE . 'http' . DS);
 define('CORE_DATABASE', CORE . 'database' . DS);
+define('CORE_FORM', CORE . 'form' . DS);
 
 define('WEBHOST', $_SERVER['HTTP_HOST']);
 define('WEBROOT', 'http://' . WEBHOST . '/appsynth/');

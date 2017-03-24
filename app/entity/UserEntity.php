@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Core\Http\Query;
 use Core\Mvc\Entity\Entity;
 
 class UserEntity extends Entity {
@@ -12,116 +13,20 @@ class UserEntity extends Entity {
     public $pseudo;
     public $mail;
 
-    public function setter($property,$value){
-        if (property_exists($this, $property)) {
-            if($this->$property !== $value){
-                $this->$property = $value;
-                $this->_modified[$property] = $value;
-            }
-        }
-    }
-
-    public function __set($property, $value)
-    {
-        // TODO: Implement __set() method.
-        if (property_exists($this, $property)) {
-            if($this->$property !== $value){
-                $this->$property = $value;
-                $this->_modified[$property] = $value;
-            }
-        }
-    }
-
     public function getInfos(){
-        return $this->id . ' : ' . $this->pseudo;
+        return "
+            <ul>
+                <li>id : {$this->id}</li>
+                <li>login : {$this->login}</li>
+                <li>pseudo : {$this->pseudo}</li>
+                <li>mail : {$this->mail}</li>
+            </ul>
+        ";
     }
 
-
-
-    /**
-     * @return mixed
-     */
-    public function getId()
-    {
-        return $this->id;
+    public function getProfileLink(){
+        $link = Query::build(Query::getController(), 'profile', $this->id);
+        return $link;
     }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id)
-    {
-        $this->setter('id',$id);
-        $this->id = $id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getLogin()
-    {
-        return $this->login;
-    }
-
-    /**
-     * @param mixed $login
-     */
-    public function setLogin($login)
-    {
-        $this->setter('login', $login);
-        $this->login = $login;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param mixed $password
-     */
-    public function setPassword($password)
-    {
-        $this->setter('password', $password);
-        $this->password = $password;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPseudo()
-    {
-        return $this->pseudo;
-    }
-
-    /**
-     * @param mixed $pseudo
-     */
-    public function setPseudo($pseudo)
-    {
-        $this->setter('pseudo', $pseudo);
-        $this->pseudo = $pseudo;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getMail()
-    {
-        return $this->mail;
-    }
-
-    /**
-     * @param mixed $mail
-     */
-    public function setMail($mail)
-    {
-        $this->setter('mail', $mail);
-        $this->mail = $mail;
-    }
-
 
 }

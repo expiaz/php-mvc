@@ -15,10 +15,9 @@ abstract class Model{
     public function __construct()
     {
         $this->_pdo = Database::getInstance();
-        $this->table = strtolower(str_replace('Model','',substr(get_class($this), strrpos(get_class($this),'\\') + 1)));
+        $this->table = strtolower(str_replace('Model', '', substr(get_class($this), strrpos(get_class($this), '\\') + 1)));
         $entityClass = ucfirst($this->table);
         if(file_exists(ENTITY . $entityClass . 'Entity.php')){
-            //require_once(ENTITY . $entityClass . 'Entity.php');
             $this->entity = "\\App\\Entity\\{$entityClass}Entity";
         }
     }
@@ -68,7 +67,7 @@ abstract class Model{
                     array_keys($o->_modified)
                 )
             );
-            $sql = 'UPDATE ' . $this->table . ' SET ' . $fields . ' WHERE id=' . $o->getId() .';';
+            $sql = 'UPDATE ' . $this->table . ' SET ' . $fields . ' WHERE id=' . $o->id .';';
             $query = $this->_pdo->prepare($sql);
             return $query->execute($o->_modified) ? true : false;
         }
