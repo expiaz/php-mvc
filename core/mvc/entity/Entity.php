@@ -1,9 +1,35 @@
 <?php
 namespace Core\Mvc\Entity;
 
+use Core\Cache;
+use Core\Helper;
+
 abstract class Entity{
 
     public $_modified = [];
+    private $_model = null;
+
+    public function __construct()
+    {
+        $modelClass = Helper::getModelFilePathFromInstance($this);
+        $modelNs = Helper::getModelNamespaceFromInstance($this);
+        if(DEV)
+            echo '[' . get_class($this) . '] modelFilePah = ' . $modelClass . ' & modelNs = ' . $modelNs . '<br>';
+        $model = Cache::get($modelNs);
+        if(!is_object($model)){
+            if(file_exists($modelClass)){
+                $model = new $modelNs();
+                Cache::set($modelNs, $model);
+            }
+            else
+                $model = null;
+        }
+        $this->_model = $model;
+    }
+
+    public function getModel(){
+        return $this->_model;
+    }
 
     public function __call($function, $args){
         echo '[Entity] __call ' . get_class($this) . ' '  . $function . ' ';

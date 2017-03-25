@@ -6,7 +6,7 @@ use PDO;
 abstract class Config{
 
     static public $database = [
-        'dsn' => 'mysql:host=localhost;dbname=appsynth;charset=UTF8',
+        'dsn' => 'mysql:host=localhost;dbname=webphp;charset=UTF8',
         'user' => 'root',
         'password' => '',
         'options' => [

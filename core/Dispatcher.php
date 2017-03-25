@@ -49,6 +49,7 @@ class Dispatcher{
     }
 
     private function find($ctrl = null, $act = null, $p = null){
+
         $controller = $ctrl ?? $this->_request['controller'];
         $action = $act ?? $this->_request['action'];
         $param = $p ?? $this->_request['param'];
@@ -82,7 +83,7 @@ class Dispatcher{
     }
 
     private function load($controller, $action, $param){
-        $controllerNs = "\\App\\Controller\\{$controller}";
+        $controllerNs = "App\\Controller\\{$controller}";
         $controllerClass = new $controllerNs();
         if(!$this->methodExists($controllerClass, $action)){
             $param = array_merge([$action],$param);
@@ -92,9 +93,16 @@ class Dispatcher{
             'GET' => array_slice($_GET,1),
             'POST' => $_POST
         ];
+        Cache::set($controllerNs, $controllerClass);
         Query::setAction($action);
         Query::setParam($param);
         Query::setHttp($http);
+
+        if(DEV){
+            echo "[Dispatcher::load] controller = {$controller}, action = {$action}, param = ";
+            print_r($param);
+        }
+
         $controllerClass->$action($param, $http);
     }
 

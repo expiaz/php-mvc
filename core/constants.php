@@ -17,6 +17,6 @@ define('CORE_DATABASE', CORE . 'database' . DS);
 define('CORE_FORM', CORE . 'form' . DS);
 
 define('WEBHOST', $_SERVER['HTTP_HOST']);
-define('WEBROOT', 'http://' . WEBHOST . '/appsynth/');
-define('WEBAPP', 'http://' . WEBHOST . '/appsynth/app/');
-define('WEBASSET', 'http://' . WEBHOST . '/appsynth/app/assets/');
+define('WEBROOT', 'http://' . WEBHOST . '/webphp/film/');
+define('WEBAPP', WEBROOT . 'app/');
+define('WEBASSET', WEBAPP . 'assets/');

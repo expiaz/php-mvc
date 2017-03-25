@@ -8,7 +8,7 @@ use PDO;
 
 abstract class Model{
 
-    private $_pdo;
+    protected $_pdo;
     protected $table;
     protected $entity = null;
 
@@ -26,20 +26,45 @@ abstract class Model{
         $query = $this->_pdo->prepare($sql);
         $query->execute($param);
         if($this->entity !== null){
-            $query->setFetchMode(PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, $this->entity);
+            $query->setFetchMode(PDO::FETCH_CLASS, $this->entity);
             return $query->fetch();
         }
         return $query->fetch(PDO::FETCH_OBJ);
+    }
+
+    public function fetchInto($entity, $sql, $param = []){
+        $entityName = ucfirst(strtolower($entity));
+        $entityClass = $entityName . 'Entity.php';
+        $entityNs = "App\\Entity\\{$entity}Entity";
+        if(!file_exists(ENTITY . $entityClass))
+            return false;
+        $query = $this->_pdo->prepare($sql);
+        $query->execute($param);
+        $query->setFetchMode(PDO::FETCH_CLASS, $entityNs);
+        return $query->fetch();
     }
 
     public function fetchAll($sql,$param = []){
         $query = $this->_pdo->prepare($sql);
         $query->execute($param);
         if($this->entity !== null){
-            return $query->fetchAll(PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, $this->entity);
+            return $query->fetchAll(PDO::FETCH_CLASS, $this->entity);
         }
         return $query->fetchAll(PDO::FETCH_OBJ);
     }
+
+    public function fetchAllInto($entity, $sql, $param = []){
+        $entityName = ucfirst(strtolower($entity));
+        $entityClass = $entityName . 'Entity.php';
+        $entityNs = "App\\Entity\\{$entity}Entity";
+        if(!file_exists(ENTITY . $entityClass))
+            return false;
+        $query = $this->_pdo->prepare($sql);
+        $query->execute($param);
+        return $query->fetchAll(PDO::FETCH_CLASS, $entityNs);
+    }
+
+
 
     public function getAll(){
         $sql = 'SELECT * FROM ' . $this->table . ';';
@@ -71,6 +96,31 @@ abstract class Model{
             $query = $this->_pdo->prepare($sql);
             return $query->execute($o->_modified) ? true : false;
         }
+    }
+
+    public function insert($o){
+        $fields = get_class_vars(get_class($o));
+        var_dump($fields);
+        $f = [];
+        $v = [];
+        foreach ($fields as $field => $value) {
+            if($field !== '_modified'){
+                $value = $o->$field;
+                if($value !== null){
+                    $f[] = $field;
+                    $v[$field] = $value;
+                }
+                elseif ($field == 'id'){
+                    $f[] = $field;
+                    $v[$field] = NULL;
+                }
+            }
+        }
+        if(count($f) === 0)
+            return;
+        $sql = 'INSERT INTO `' . $this->table . '` (`' . implode('`,` ',$f) . '`) VALUES (:' . implode(', :',$f) . ');';
+        $query = $this->_pdo->prepare($sql);
+        return $query->execute($v) ? true : false;
     }
 
 }

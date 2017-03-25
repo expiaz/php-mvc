@@ -2,12 +2,12 @@
 
 use Core\Http\Router;
 
-Router::on('/', 'index@index');
+Router::on('/', 'film@index');
 
-Router::on('/users/', 'user@all');
+    Router::on('/film/', 'film@index');
 
-Router::on('/user/', 'user@index');
+Router::on('/film/profile/:id', 'film@profile');
 
-Router::on('/user/:id', 'user@profile');
+Router::on('/realisateur/', 'realisateur@index');
 
-Router::on('/user/update/:id', 'user@update');
+Router::on('/realisateur/profile/:id', 'realisateur@profile');

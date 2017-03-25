@@ -1,17 +1,27 @@
 <?php
 namespace Core\Mvc\Controller;
 
+use Core\Cache;
+use Core\Helper;
+
 abstract class Controller{
 
     private $model = null;
 
     public function __construct()
     {
-        $modelClass = ucfirst(strtolower(str_replace('Controller','',substr(get_class($this), strrpos(get_class($this),'\\') + 1)))) . 'Model';
-        if(file_exists(MODEL . $modelClass . '.php')){
-            $modelNs = "App\\Model\\{$modelClass}";
-            $this->model = new $modelNs();
+        $modelClass = Helper::getModelFilePathFromInstance($this);
+        $modelNs = Helper::getModelNamespaceFromInstance($this);
+        $model = Cache::get($modelNs);
+        if(!is_object($model)){
+            if(file_exists($modelClass)){
+                $model = new $modelNs();
+                Cache::set($modelNs, $model);
+            }
+            else
+                $model = null;
         }
+        $this->model = $model;
     }
 
     public function getModel(){

@@ -14,6 +14,7 @@ class Bootstrapper{
         require_once CORE . 'Autoload.php';
         require_once CORE . 'Helper.php';
         require_once CORE . 'Config.php';
+        require_once CORE . 'Cache.php';
         require_once CORE_HTTP . 'Session.php';
         require_once CORE_HTTP . 'Query.php';
         require_once CORE_HTTP . 'Router.php';
@@ -31,6 +32,7 @@ class Bootstrapper{
 
     public function initialize(){
         Autoload::register();
+        Cache::init();
         database\Database::connect();
         http\Session::activate();
     }

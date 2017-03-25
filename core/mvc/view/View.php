@@ -24,6 +24,8 @@ abstract class View
         ];
 
         $vars['title'] = Query::getAction();
+
+        $vars['home'] = WEBROOT;
         echo self::capture($path,$vars);
         return;
     }

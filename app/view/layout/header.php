@@ -5,4 +5,4 @@
     <title><?=$title?></title>
 </head>
 <body>
-<a href="<?=$connected['link']?>"><?=$connected['message']?></a>
+<a href="<?=$home?>">Accueil</a>
