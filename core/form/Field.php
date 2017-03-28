@@ -11,8 +11,12 @@ class Field{
     private $required;
     private $id;
     private $class;
+    private $data;
+    private $childs;
+    private $focus;
+    private $multiple;
 
-    public function __construct($type = 'text', $name = 'input', $value = null, $placeholder = null, $required = false, $id = null, $class = null)
+    public function __construct($type = 'text', $name = 'input', $value = null, $placeholder = null, $required = false, $id = null, $class = null, $data = null, $focus = null, $childs = [])
     {
         $this->type = $type;
         $this->name = $name;
@@ -21,6 +25,9 @@ class Field{
         $this->required = $required;
         $this->id = $id;
         $this->class = $class;
+        $this->data = $data;
+        $this->childs = $childs;
+        $this->focus = $focus;
     }
 
     public function type($type){
@@ -56,6 +63,23 @@ class Field{
     public function class($class){
         $this->class = $class;
         return $this;
+    }
+
+    public function default(){
+        $this->focus = true;
+        return $this;
+    }
+
+    public function multiple(){
+        $this->multiple = true;
+        return $this;
+    }
+
+    public function option($value, $selected = false){
+        $this->childs[] = [
+            'value' => $value,
+            'selected' => $selected
+        ];
     }
 
     public function create($label){

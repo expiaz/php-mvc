@@ -24,7 +24,10 @@ abstract class Controller{
         $this->model = $model;
     }
 
-    public function getModel(){
+    public function getModel($name = null){
+        if($name){
+            return Cache::get(Helper::getModelNamespaceFromName($name), true);
+        }
         return $this->model;
     }
 

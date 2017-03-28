@@ -19,6 +19,7 @@ class Bootstrapper{
         require_once CORE_HTTP . 'Query.php';
         require_once CORE_HTTP . 'Router.php';
         require_once CORE_DATABASE . 'Database.php';
+        require_once CORE_DATABASE . 'ORM.php';
         require_once CORE_FORM . 'Form.php';
         require_once APP . 'route.php';
     }

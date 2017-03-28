@@ -11,8 +11,8 @@ abstract class Form{
         $fields = get_class_vars(get_class($o));
 
         foreach ($fields as $prop => $value){
-            $value = $o->$prop;
-            if(!is_array($value) && !is_object($value)){
+            $value = $o->$prop ?? $value;
+            if(!is_array($value) && !is_object($value) && $prop{0} !== '_'){
                 $f = new Field();
                 if($prop === 'id'){
                     $f->type('hidden')
@@ -48,6 +48,10 @@ abstract class Form{
         $out .= "<br/><input type=\"submit\" value=\"submit\"/></form>";
 
         return $out;
+    }
+
+    public static function buildFromTable($tableName){
+
     }
 
     public static function buildFromScratch(array $fields, $opts){

@@ -90,8 +90,8 @@ class Dispatcher{
             $action = 'index';
         }
         $http = [
-            'GET' => array_slice($_GET,1),
-            'POST' => $_POST
+            'GET' => $this->secureHttpArguments(array_slice($_GET,1)),
+            'POST' => $this->secureHttpArguments($_POST)
         ];
         Cache::set($controllerNs, $controllerClass);
         Query::setAction($action);
@@ -103,7 +103,8 @@ class Dispatcher{
             print_r($param);
         }
 
-        $controllerClass->$action($param, $http);
+        //$controllerClass->$action($param, $http);
+        call_user_func_array([$controllerClass,$action],array_merge([$http],$param));
     }
 
     private function methodExists($class, $method){
@@ -113,6 +114,17 @@ class Dispatcher{
             return true;
         }
         return false;
+    }
+
+    private function secureHttpArguments($http){
+        if(is_array($http)){
+            $ret = [];
+            foreach ($http as $k => $h) {
+                $ret[$k] = is_array($h) ? $this->secureHttpArguments($h) : htmlspecialchars($h);
+            }
+            return $ret;
+        }
+        return htmlspecialchars($http);
     }
 
 }

@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use Core\Exception\FileNotFoundException;
+
 class Autoload{
 
     public static function register(){
@@ -26,7 +28,10 @@ class Autoload{
         if(DEV)
             echo "{$fileName} autloaded <br>";
 
-        require_once ROOT . $fileName;
+        if(file_exists(ROOT . $fileName))
+            require_once ROOT . $fileName;
+        else
+            throw new FileNotFoundException("{$fileName} does not exists");
 
     }
 

@@ -1,7 +1,6 @@
 <?php
 namespace App\Controller;
 
-use Core\Http\Router;
 use Core\Mvc\Controller\Controller;
 use Core\Mvc\View\View;
 
@@ -12,7 +11,7 @@ class IndexController extends Controller {
         parent::__construct();
     }
 
-    public function index($param, $http){
+    public function index($http, ...$parameters){
         View::render('index', []);
     }
 

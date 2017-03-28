@@ -9,5 +9,6 @@ require_once CORE . 'Bootstrapper.php';
 require_once CORE . 'Dispatcher.php';
 
 new Core\Bootstrapper();
-new Core\Dispatcher($_GET['p'] ?? '');
 
+\Core\Database\ORM::generateEntity();
+//new Core\Dispatcher($_GET['p'] ?? '');

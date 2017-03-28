@@ -6,9 +6,17 @@ abstract class Helper{
     public static function getClassNameFromInstance($instance){
         $instanceNs = get_class($instance);
         $instanceClass = substr($instanceNs, strrpos($instanceNs, '\\') + 1);
-        $name = ucfirst(strtolower(str_replace('Entity','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
+        $name = self::normalizeName(str_replace('Entity','',str_replace('Model','',str_replace('Controller','',$instanceClass))));
         return $name;
     }
+
+    public static function getTableNameFromInstance($instance){
+        $instanceNs = get_class($instance);
+        $instanceClass = substr($instanceNs, strrpos($instanceNs, '\\') + 1);
+        $name = strtolower(str_replace('Entity','',str_replace('Model','',str_replace('Controller','',$instanceClass))));
+        return $name;
+    }
+
 
     public static function normalizeName($name){
         return ucfirst(strtolower($name));

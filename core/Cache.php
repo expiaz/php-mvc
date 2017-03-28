@@ -16,8 +16,15 @@ abstract class Cache{
 
     public static function get($key, $createInstanceAndReturnItIfNotSet = false){
         if(!isset(self::$_cached[$key])){
-            if($createInstanceAndReturnItIfNotSet)
-                self::$_cached[$key] = new $key();
+            if($createInstanceAndReturnItIfNotSet){
+                try{
+                    self::$_cached[$key] = new $key();
+                }
+                catch(FileNotFoundException $e){
+                    return null;
+                }
+            }
+
             else
                 return -1;
         }
