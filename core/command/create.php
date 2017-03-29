@@ -19,15 +19,17 @@ else
     switch(strtolower($args[0])){
         case 'model':
             $filesType = ['model'];
+			$args = array_slice($args,1);
             break;
         case 'controller':
             $filesType = ['controller'];
+			$args = array_slice($args,1);
             break;
         default:
             $filesType = ['controller','model'];
+			break;
     }
 
-$args = array_slice($args,1);
 
 $force = false;
 $filesNames = [];
@@ -37,6 +39,10 @@ foreach ($args as $arg){
         switch(strtolower($option)){
             case 'force':
                 $force = true;
+                break;
+            case 'help':
+                echo "create [controller|model] [<...fileName>] [--force|help]\nIf controller / model are not set, it will create both.\nIf no fileName(s) are provided, it will map the databases entity to create it.\n\noptions:\n    --force : will overwrite existing files.\n    --help : will display the help.\n";
+                exit(0);
                 break;
             default:
                 break;
@@ -54,8 +60,6 @@ if(count($filesNames) === 0){
         $filesNames[] = $table[0];
     }
 }
-
-var_dump($filesNames);
 
 $filesNames = array_map(function($e){
     return lcfirst(str_replace(['_','-'],'',ucwords(strtolower($e), '_-')));

@@ -30,31 +30,23 @@ class ModelGenerator{
         if(file_exists($fileName)){
             if($this->force){
                 echo "[OVERRIDDING] Model {$this->name} at {$fileName}\n";
+				file_put_contents($fileName, $this->output);
             }
             else{
                 echo "[SKIPPING] Model {$this->name} at {$fileName}\n";
             }
         }
         else{
+			if(!is_dir(MODEL))
+				mkdir(MODEL);
+			
             echo "[CREATING] Model {$this->name} at {$fileName}\n";
+			file_put_contents($fileName, $this->output);
         }
-        file_put_contents($fileName, $this->output);
     }
 
     private function generateClass(){
-        $header="<?php
-        
-namespace App\\Model;
-        
-use Core\\Mvc\\Model\\Model;
-        
-class {$this->name}Model extends Model{
-
-{$this->generateConstructor()}
-
-}";
-
-        return $header;
+        return "<?php\n\nnamespace App\\Model;\n\nuse Core\\Mvc\\Model\\Model;\n\nclass {$this->name}Model extends Model{\n\n{$this->generateConstructor()}\n\n}";
     }
 
     private function generateConstructor(){

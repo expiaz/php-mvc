@@ -29,7 +29,9 @@ class EntityGenerator{
                 $v = $this->arrayToString($v);
             elseif (!preg_match('#^\d+$#',$v))
                 $v = empty($v) ? "NULL" :  "\"{$v}\"";
-            $o[] = "\"{$k}\" => {$v}";
+            if(!preg_match('#^\d+$#',$k))
+                $k = "\"{$k}\"";
+            $o[] = "{$k} => {$v}";
         }
         return 'Array ( ' . implode(', ',$o) . ' )';
     }
@@ -44,35 +46,24 @@ class EntityGenerator{
         if(file_exists($fileName)){
             if($this->force){
                 echo "[OVERRIDDING] Entity {$this->name} at {$fileName}\n";
+				file_put_contents($fileName, $this->output);
             }
             else{
                 echo "[SKIPPING] Entity {$this->name} at {$fileName}\n";
             }
         }
         else{
+			if(!is_dir(ENTITY))
+				mkdir(ENTITY);
+			
             echo "[CREATING] Entity {$this->name} at {$fileName}\n";
+			file_put_contents($fileName, $this->output);
         }
-        file_put_contents($fileName, $this->output);
+        
     }
 
     private function generateClass(){
-        $header="<?php
-        
-namespace App\\Entity;
-        
-use Core\\Mvc\\Entity\\Entity;
-        
-class {$this->name}Entity extends Entity{
-
-{$this->generateProperties()}
-
-{$this->generateConstructor()}
-
-{$this->generateMethod()}
-
-}";
-
-        return $header;
+        return "<?php\n\nnamespace App\\Entity;\n\nuse Core\\Mvc\\Entity\\Entity;\n\nclass {$this->name}Entity extends Entity{\n\n{$this->generateProperties()}\n\n{$this->generateConstructor()}\n\n}";
     }
 
     private function generateProperties(){
@@ -89,12 +80,8 @@ class {$this->name}Entity extends Entity{
 
     private function generateBaseProperty(){
         return [
-            "private \$_schema = {$this->arrayToString($this->schema)};"
+            "public \$_schema = {$this->arrayToString($this->schema)};"
         ];
-    }
-
-    private function generateMethod(){
-        return "";
     }
 
     private function generateConstructor(){

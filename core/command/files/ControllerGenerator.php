@@ -30,33 +30,24 @@ class ControllerGenerator{
         if(file_exists($fileName)){
             if($this->force){
                 echo "[OVERRIDDING] Controller {$this->name} at {$fileName}\n";
+				file_put_contents($fileName, $this->output);
             }
             else{
                 echo "[SKIPPING] Controller {$this->name} at {$fileName}\n";
             }
         }
         else{
+			if(!is_dir(CONTROLLER))
+				mkdir(CONTROLLER);
+			
             echo "[CREATING] Controller {$this->name} at {$fileName}\n";
+			file_put_contents($fileName, $this->output);
         }
-        file_put_contents($fileName, $this->output);
+        
     }
 
     private function generateClass(){
-        $header="<?php
-        
-namespace App\\Controller;
-        
-use Core\\Mvc\\Controller\\Controller;
-        
-class {$this->name}Controller extends Controller{
-
-{$this->generateConstructor()}
-
-{$this->generateMethod()}
-
-}";
-
-        return $header;
+        return "<?php\n\nnamespace App\\Controller;\n\nuse Core\\Mvc\\Controller\\Controller;\n\nclass {$this->name}Controller extends Controller{\n\n{$this->generateConstructor()}\n\n{$this->generateMethod()}\n\n}";
     }
 
     private function generateMethod(){

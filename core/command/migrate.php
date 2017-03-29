@@ -18,6 +18,10 @@ foreach ($args as $arg){
             case 'force':
                 $force = true;
                 break;
+            case 'help':
+                echo "migrate [<...entityName>] [--force|help]\nIf no entityName(s) are provided, it will map the databases entity to create it.\n\noptions:\n    --force : will overwrite existing files.\n    --help : will display the help.\n";
+                exit(0);
+                break;
             default:
                 break;
         }
