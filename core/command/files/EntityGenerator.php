@@ -63,7 +63,7 @@ class EntityGenerator{
     }
 
     private function generateClass(){
-        return "<?php\n\nnamespace App\\Entity;\n\nuse Core\\Mvc\\Entity\\Entity;\n\nclass {$this->name}Entity extends Entity{\n\n{$this->generateProperties()}\n\n{$this->generateConstructor()}\n\n}";
+        return "<?php\n\nnamespace App\\Entity;\n\nuse Core\\Mvc\\Entity\\Entity;\n\nclass {$this->name}Entity extends Entity{\n\n{$this->generateProperties()}\n\n{$this->generateConstructor()}\n\n{$this->generateSettersAndGetters()}\n\n}";
     }
 
     private function generateProperties(){
@@ -86,6 +86,28 @@ class EntityGenerator{
 
     private function generateConstructor(){
         return "    public function __construct(){\n        parent::__construct(func_get_args());\n    }";
+    }
+
+    private function generateSettersAndGetters(){
+        $out = [];
+        foreach ($this->schema as $property){
+            $out[] = $this->generateGetterAndSetter($property['name']);
+        }
+        return "    " . implode("\n\n    ",$out);
+    }
+
+    private function generateGetterAndSetter($propName){
+        return $this->generateGetter($propName) . "\n\n    " . $this->generateSetter($propName);
+    }
+
+    private function generateSetter($propName){
+        $propUpper = ucfirst($propName);
+        return "public function set{$propUpper}(\${$propName}){\n        parent::setter('{$propName}',\${$propName});\n        \$this->{$propName} = \${$propName};\n    }";
+    }
+
+    private function generateGetter($propName){
+        $propUpper = ucfirst($propName);
+        return "public function get{$propUpper}(){\n        return \$this->{$propName};\n     }";
     }
 
 }

@@ -2,75 +2,98 @@
 
 namespace Core\Form;
 
-use Core\Mvc\Entity\Entity;
+class Form{
 
-abstract class Form{
+    private $fields;
+    private $class;
+    private $id;
+    private $enctype;
+    private $action;
+    private $method;
+    private $hasSubmitButton;
 
-    public static function buildFromEntity(Entity $o, $opts){
-        $htmlFields = [];
-        $fields = get_class_vars(get_class($o));
+    public function __construct($fieldCollection = [])
+    {
+        $this->id = null;
+        $this->class = null;
+        $this->enctype = null;
+        $this->method = null;
+        $this->hasSubmitButton = false;
+        $this->action = null;
+        $this->fields = [];
 
-        foreach ($fields as $prop => $value){
-            $value = $o->$prop ?? $value;
-            if(!is_array($value) && !is_object($value) && $prop{0} !== '_'){
-                $f = new Field();
-                if($prop === 'id'){
-                    $f->type('hidden')
-                        ->value($value)
-                        ->required(true)
-                        ->name($prop);
-                }
-                else{
-                    $f->type('text')
-                        ->id($prop)
-                        ->placeholder($prop)
-                        ->name($prop)
-                        ->value($value)
-                        ->required(true);
-                }
-                $htmlFields[] = $f->create(true);
-            }
-        }
-
-        $out = "<form";
-        $sample = $opts['method'] ?? 'POST';
-        $out .= " method=\"{$sample}\"";
-        $sample = $opts['action'] ?? '';
-        $out .= " action=\"{$sample}\"";
-        if(isset($opts['class'])){
-            $out .= " class=\"{$opts['class']}\"";
-        }
-        if(isset($opts['id'])){
-            $out .= " id=\"{$opts['id']}\"";
-        }
-        $out .= ">";
-        $out .= implode('',$htmlFields);
-        $out .= "<br/><input type=\"submit\" value=\"submit\"/></form>";
-
-        return $out;
+        foreach ($fieldCollection as $field)
+            $this->field($field);
     }
 
-    public static function buildFromTable($tableName){
+    public function field(Field $field){
 
+        if($field->type === 'submit')
+            $this->hasSubmitButton = true;
+
+        $this->fields[] = $field;
+        return $this;
     }
 
-    public static function buildFromScratch(array $fields, $opts){
+    public function class($class){
+        $this->class = $class;
+        return $this;
+    }
 
-        $out = "<form";
-        $sample = $opts['method'] ?? 'POST';
-        $out .= " method=\"{$sample}\"";
-        $sample = $opts['action'] ?? '';
-        $out .= " action=\"{$sample}\"";
-        if(isset($opts['class'])){
-            $out .= " class=\"{$opts['class']}\"";
+    public function id($id){
+        $this->id = $id;
+        return $this;
+    }
+
+    public function enctype($enctype){
+        switch($enctype){
+            case 'file':
+                $this->enctype = "multipart/form-data";
+                break;
+            default:
+                $this->enctype = "multipart/form-data";
+                break;
         }
-        if(isset($opts['id'])){
-            $out .= " id=\"{$opts['id']}\"";
+        return $this;
+    }
+
+    public function action($action){
+        $this->action = $action;
+        return $this;
+    }
+
+    public function method($method){
+        $this->method = $method;
+        return $this;
+    }
+
+    public function build(){
+        $out = '<form';
+        if($this->method)
+            $out .= " method=\"{$this->method}\"";
+        else
+            $out .= " method=\"POST\"";
+        if($this->action)
+            $out .= " action=\"{$this->action}\"";
+        else
+            $out .= " action=\"\"";
+        if($this->enctype)
+            $out .= " enctype=\"{$this->enctype}\"";
+        if($this->class){
+            $out .= " class=\"{$this->class}\"";
+        }
+        if($this->id){
+            $out .= " id=\"{$this->id}\"";
         }
         $out .= ">";
-        $out .= implode('',array_map(function($f){ return $f->create(true); },$fields));
-        $out .= "<br/><input type=\"submit\" value=\"submit\"/></form>";
 
+        $out .= implode('<br/>', array_map(function($f){
+            return $f->create();
+        }, $this->fields));
+
+        if(!$this->hasSubmitButton)
+            $out .= "<br/><input type=\"submit\" value=\"submit\"/>";
+        $out .= "</form>";
         return $out;
     }
 

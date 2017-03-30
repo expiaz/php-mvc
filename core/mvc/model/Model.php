@@ -129,9 +129,16 @@ abstract class Model{
             var_dump($o);
         }
 
-        $fields = array_values(array_filter(array_keys(get_class_vars(get_class($o))),function($e){
+        /*$fields = array_values(array_filter(array_keys(get_class_vars(get_class($o))),function($e){
             return $e{0} !== '_';
         }));
+        echo '<br>fields : ';
+        var_dump($fields);*/
+
+        $fields = array_map(function($e){
+            return $e['name'];
+        }, $o->_schema);
+
         if(DEV) {
             echo '<br>fields : ';
             var_dump($fields);
@@ -140,7 +147,8 @@ abstract class Model{
         $v = [];
         foreach ($fields as $field) {
             $value = $o->$field;
-            echo '<br>field => value : ' . $field . ' => ' . $value;
+            IF(DEV)
+                echo '<br>field => value : ' . $field . ' => ' . $value;
             if(!is_array($value) && !is_object($value)){
                 $f[] = $field;
                 $v[$field] = $value;

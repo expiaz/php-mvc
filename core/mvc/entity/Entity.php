@@ -110,6 +110,10 @@ abstract class Entity{
         }
     }
 
+    public function setter($k,$v){
+        $this->_modified[$k] = $v;
+    }
+
     public function insert(){
         if(!is_null($this->_model)){
             $this->id = $this->_model->insert($this);

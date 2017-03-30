@@ -2,6 +2,11 @@
 
 define('DEV', false);
 
+if(DEV){
+    ini_set('display_errors', '1');
+    error_reporting(E_ALL);
+}
+
 define('APP', ROOT . 'app' . DS);
 define('CONTROLLER', APP . 'controller' . DS);
 define('MODEL', APP . 'model' . DS);

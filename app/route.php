@@ -2,4 +2,4 @@
 
 use Core\Http\Router;
 
-Router::on('/', 'index@index');
+Router::on('/', 'index@click');
