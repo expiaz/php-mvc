@@ -10,4 +10,8 @@ class FilmModel extends Model{
         parent::__construct();
     }
 
+    public function getRealisateurInfos($id){
+
+    }
+
 }

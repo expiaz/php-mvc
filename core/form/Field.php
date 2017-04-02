@@ -6,7 +6,7 @@ class Field{
 
     //base
     public $type;
-    private $name;
+    public $name;
     private $value;
     private $label;
 
@@ -136,8 +136,14 @@ class Field{
         $out = "<input";
         if($this->type)
             $out .= " type=\"{$this->type}\"";
-        if($this->name)
-            $out .= " name=\"{$this->name}\"";
+        if($this->name){
+            if($this->type === 'submit')
+                $out .= " name=\"submit\"";
+            else
+                $out .= " name=\"{$this->name}\"";
+        }
+        else
+            $out .= " name=\"submit\"";
         if($this->id)
             $out .= " id=\"{$this->id}\"";
         if($this->value)
@@ -177,6 +183,10 @@ class Field{
             $out .= " selected";
         $out .= ">{$opts['content']}</option>";
         return $out;
+    }
+
+    public function validateEntry($entry){
+        return is_null($entry) ? $this->required ? false : true : true;
     }
 
 }

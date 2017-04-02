@@ -107,6 +107,25 @@ abstract class Model{
         return $this->fetch($sql,[$id]);
     }
 
+    public function persist(Entity $o){
+        if(is_null($o->getId())){
+            return $o->insert();
+        }
+        $shouldUpdate = $this->find(
+            [
+                'select' => ' COUNT(id) as nb',
+                'from' => $o->_table,
+                'where' => 'id = :id'
+            ],
+            [
+                'id' => $o->getId()
+            ]
+        );
+        if($shouldUpdate[0]->nb > 0)
+            return $o->update();
+        return $o->insert();
+    }
+
     public function update(Entity $o){
         if(count(array_keys($o->_modified)) > 0){
             $fields = implode(' AND ',

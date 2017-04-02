@@ -79,14 +79,20 @@ abstract class Entity{
         return count(array_filter(array_keys($a), 'is_string')) > 0;
     }
 
-    public function getModel(){
+    public function getModel($name = null){
+        if($name){
+            return Cache::get(Helper::getModelNamespaceFromName($name), true);
+        }
         return $this->_model;
     }
 
     public function __call($function, $args){
-        echo '[Entity] __call ' . get_class($this) . ' '  . $function . ' ';
-        print_r($args);
-        echo '<br>';
+        if(DEV){
+            echo '[Entity] __call ' . get_class($this) . ' '  . $function . ' ';
+            print_r($args);
+            echo '<br>';
+        }
+
         $type = substr($function,0,3);
         $propName = strtolower(substr($function,3));
         $props = array_map(
@@ -111,7 +117,9 @@ abstract class Entity{
     }
 
     public function setter($k,$v){
-        $this->_modified[$k] = $v;
+        if($v !== $this->$k){
+            $this->_modified[$k] = $v;
+        }
     }
 
     public function insert(){
@@ -125,6 +133,15 @@ abstract class Entity{
     public function update(){
         if(!is_null($this->_model))
             return $this->_model->update($this);
+        return false;
+    }
+
+    public function persist(){
+        echo '[Entity::persist]<br/>';
+        if(!is_null($this->_model)){
+            echo '[Entity::persist] model find<br/>';
+            return $this->_model->persist($this);
+        }
         return false;
     }
 

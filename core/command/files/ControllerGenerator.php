@@ -47,11 +47,11 @@ class ControllerGenerator{
     }
 
     private function generateClass(){
-        return "<?php\n\nnamespace App\\Controller;\n\nuse Core\\Mvc\\Controller\\Controller;\n\nclass {$this->name}Controller extends Controller{\n\n{$this->generateConstructor()}\n\n{$this->generateMethod()}\n\n}";
+        return "<?php\n\nnamespace App\\Controller;\n\nuse Core\\Mvc\\Controller\\Controller;\nuse Core\\Http\\Request;\n\nclass {$this->name}Controller extends Controller{\n\n{$this->generateConstructor()}\n\n{$this->generateMethod()}\n\n}";
     }
 
     private function generateMethod(){
-        return "    public function index(\$http, ...\$parameters){\n        //Your logic here\n    }";
+        return "    public function index(Request \$request, ...\$parameters){\n        //Your logic here\n    }";
     }
 
     private function generateConstructor(){

@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use Core\Exception\FileNotFoundException;
+
 abstract class Cache{
 
     private static $_cached;

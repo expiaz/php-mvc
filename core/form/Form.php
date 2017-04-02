@@ -2,6 +2,9 @@
 
 namespace Core\Form;
 
+use Core\Http\Request;
+use Core\Mvc\Entity\Entity;
+
 class Form{
 
     private $fields;
@@ -11,16 +14,21 @@ class Form{
     private $action;
     private $method;
     private $hasSubmitButton;
+    private $entity;
+    private $container;
+    private $isSubmitted;
 
-    public function __construct($fieldCollection = [])
+    public function __construct($fieldCollection = [], Entity $entity = null)
     {
         $this->id = null;
         $this->class = null;
         $this->enctype = null;
-        $this->method = null;
+        $this->method = 'POST';
         $this->hasSubmitButton = false;
-        $this->action = null;
+        $this->action = '';
         $this->fields = [];
+        $this->entity = $entity;
+        $this->isSubmitted = false;
 
         foreach ($fieldCollection as $field)
             $this->field($field);
@@ -87,14 +95,57 @@ class Form{
         }
         $out .= ">";
 
+        if(!$this->hasSubmitButton)
+            $this->field((new Field())->type('submit')->name('submit')->value('submit'));
+
         $out .= implode('<br/>', array_map(function($f){
             return $f->create();
         }, $this->fields));
 
-        if(!$this->hasSubmitButton)
-            $out .= "<br/><input type=\"submit\" value=\"submit\"/>";
         $out .= "</form>";
         return $out;
+    }
+
+    private function bindInputEntry($input, $entry){
+        switch($input->type){
+            case 'submit':
+                break;
+            default:
+                $this->container->{"set" . ucfirst(strtolower($input->name))}($entry);
+                break;
+        }
+    }
+
+    public function handleRequest(Request $request){
+        if(!is_null($this->entity)){
+            $this->container = $this->entity;
+        }
+        else{
+            $this->container = new DataContainer();
+        }
+
+        $method = "get" . ucfirst(strtolower($this->method));
+
+        foreach ($this->fields as $field) {
+            $entry = $request->$method($field->name);
+
+            if(!$field->validateEntry($entry)){
+                $this->isSubmitted = false;
+                return;
+            }
+
+            $this->bindInputEntry($field,$entry);
+        }
+
+        $this->isSubmitted = true;
+    }
+
+    public function isSubmitted(){
+        return $this->isSubmitted;
+    }
+
+    public function getData(){
+        return $this->container;
     }
 
 }

@@ -15,9 +15,10 @@ class IndexController extends Controller{
     }
 
     public function index(){
-        $a = new RealisateurEntity();
-        $a->setName('Jean');
-        $a->insert();
+        echo 'index';
+        return View::render('error/404', [
+            'error' => 'index'
+        ]);
     }
 
     public function click($http, ...$parameters){

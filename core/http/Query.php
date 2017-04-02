@@ -6,7 +6,7 @@ abstract class Query{
     private static $_controller;
     private static $_action;
     private static $_param;
-    private static $_http;
+    private static $_request;
     private static $_url;
 
 
@@ -26,9 +26,9 @@ abstract class Query{
         self::$_url = $url;
     }
 
-    public static function setHttp($http)
+    public static function setRequest($request)
     {
-        self::$_http = $http;
+        self::$_request = $request;
     }
 
 
@@ -44,9 +44,9 @@ abstract class Query{
         return self::$_param;
     }
 
-    public static function getHttp()
+    public static function getRequest()
     {
-        return self::$_http;
+        return self::$_request;
     }
 
     public static function getDisplayedUrl(){

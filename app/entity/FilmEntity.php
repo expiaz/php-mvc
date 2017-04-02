@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Core\Http\Query;
 use Core\Mvc\Entity\Entity;
 
 class FilmEntity extends Entity{
@@ -16,6 +17,19 @@ class FilmEntity extends Entity{
 
     public function __construct(){
         parent::__construct(func_get_args());
+    }
+
+    public function getLink(){
+        return Query::build([
+            'controller' => 'film',
+            'action' => 'profile',
+            'param' => $this->id
+        ]);
+    }
+
+    public function getInfos(){
+        $realisateur = $this->getModel('realisateur')->getById($this->realisateur);
+        return "<ul><li>titre : {$this->title}</li><li>description : {$this->description}</li><li>realisé par : <a href=\"{$realisateur->getLink()}\">{$realisateur->getName()}</a></li></ul>";
     }
 
     public function getId(){

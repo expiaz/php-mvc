@@ -2,6 +2,7 @@
 namespace Core;
 
 use Core\Http\Query;
+use Core\Http\Request;
 use Core\Http\Router;
 
 class Dispatcher{
@@ -89,22 +90,18 @@ class Dispatcher{
             $param = array_merge([$action],$param);
             $action = 'index';
         }
-        $http = [
-            'GET' => $this->secureHttpArguments(array_slice($_GET,1)),
-            'POST' => $this->secureHttpArguments($_POST)
-        ];
+        $request = new Request(array_slice($_GET,1),$_POST);
         Cache::set($controllerNs, $controllerClass);
         Query::setAction($action);
         Query::setParam($param);
-        Query::setHttp($http);
+        Query::setRequest($request);
 
-        if(DEV){
+        if(DEV) {
             echo "[Dispatcher::load] controller = {$controller}, action = {$action}, param = ";
             print_r($param);
         }
-
         //$controllerClass->$action($param, $http);
-        call_user_func_array([$controllerClass,$action],array_merge([$http],$param));
+        call_user_func_array([$controllerClass,$action],array_merge([$request],$param));
     }
 
     private function methodExists($class, $method){
@@ -114,17 +111,6 @@ class Dispatcher{
             return true;
         }
         return false;
-    }
-
-    private function secureHttpArguments($http){
-        if(is_array($http)){
-            $ret = [];
-            foreach ($http as $k => $h) {
-                $ret[$k] = is_array($h) ? $this->secureHttpArguments($h) : htmlspecialchars($h);
-            }
-            return $ret;
-        }
-        return htmlspecialchars($http);
     }
 
 }

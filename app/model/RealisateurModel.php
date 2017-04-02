@@ -10,4 +10,8 @@ class RealisateurModel extends Model{
         parent::__construct();
     }
 
+    public function getFilms($realisateur){
+        return $this->fetchAllInto('film', 'SELECT * FROM film WHERE realisateur = ?', [$realisateur]);
+    }
+
 }
