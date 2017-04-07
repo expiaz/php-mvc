@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Database;
+namespace Core\Database\Orm;
 
 use PDO;
 
@@ -71,6 +71,10 @@ final class ORM{
         return $describe;
     }
 
+    private static function describeConstraints($tableName){
+
+    }
+
     public static function describeTable($tableName){
         $table = [];
 
@@ -85,16 +89,18 @@ final class ORM{
     }
 
     public static function describe(){
-        $bdd = [];
-
+        $bddSchema = [];
         $pdo = self::getPDO();
+
         $query = $pdo->query("SHOW TABLES");
-        $tables = $query->fetchAll();
+        $tables = $query->fetchAll(PDO::FETCH_ASSOC);
+        $tables = array_map(function($table){ return array_values($table)[0]; }, $tables);
+
         foreach ($tables as $table){
-            $bdd[$table[0]] = self::describeTable($table[0]);
+            $bddSchema[$table] = self::describeTable($table);
         }
 
-        return $bdd;
+        return $bddSchema;
     }
 
     private static function getPDO(){

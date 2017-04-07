@@ -13,7 +13,7 @@ abstract class Database{
     public static function connect(){
         if(self::$_pdo === null){
             try {
-                self::$_pdo = new PDO(Config::$database['dsn'], Config::$database['user'], Config::$database['password'], Config::$database['options']);
+                self::$_pdo = new PDO(Config::getDSN(), Config::getUser(), Config::getPwd(), Config::getOptions());
             } catch (PDOException $e) {
                 echo '[Database] Connexion échouée : ' . $e->getMessage();
             }

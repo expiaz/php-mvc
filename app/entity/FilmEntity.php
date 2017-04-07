@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use Core\Database\Orm\Schema\Constraint;
+use Core\Database\Orm\Schema\Field;
+use Core\Database\Orm\Schema\Table;
 use Core\Http\Query;
 use Core\Mvc\Entity\Entity;
 

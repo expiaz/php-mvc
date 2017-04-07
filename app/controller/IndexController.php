@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\RealisateurEntity;
+use App\Entity\Schema\FilmSchema;
 use Core\Http\Cookie;
 use Core\Http\Query;
 use Core\Mvc\Controller\Controller;
@@ -15,10 +16,15 @@ class IndexController extends Controller{
     }
 
     public function index(){
+        var_dump(FilmSchema::describe());
+        echo implode("\n\n",FilmSchema::describe());
+        die();
+        /*
         echo 'index';
         return View::render('error/404', [
             'error' => 'index'
         ]);
+        */
     }
 
     public function click($http, ...$parameters){
