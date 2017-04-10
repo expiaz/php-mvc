@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\RealisateurEntity;
 use App\Entity\Schema\FilmSchema;
+use Core\Database\Orm\Schema\Table;
 use Core\Http\Cookie;
 use Core\Http\Query;
 use Core\Mvc\Controller\Controller;
@@ -16,6 +17,19 @@ class IndexController extends Controller{
     }
 
     public function index(){
+
+        $table = new Table('index');
+        $table->prefix('keyroes');
+        $table->addField('id')
+            ->autoIncrement();
+        $table->addField('acteur')
+            ->type('varchar')
+            ->length('255')
+            ->oneToOne('acteur','id');
+
+        echo implode("\n\n",$table->describe());
+        die();
+
 
         return View::render('error/404', [
             'error' => 'index'

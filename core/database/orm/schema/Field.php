@@ -13,8 +13,11 @@ class Field implements Describable {
     private $autoIncrement;
 
     private $constraints;
+    private $pkConstraint = null;
+    private $keyConstraint = null;
+    private $uniqueConstraint = null;
 
-    public function __construct($table, $name)
+    public function __construct(Table $table, $name)
     {
         $this->table = $table;
         $this->name = $name;
@@ -23,9 +26,17 @@ class Field implements Describable {
         $this->constraints = [];
     }
 
+    public function getName(){
+        return $this->name;
+    }
+
     public function type($type){
         $this->type = $type;
         return $this;
+    }
+
+    public function getType(){
+        return $this->type;
     }
 
     public function length($length){
@@ -33,9 +44,17 @@ class Field implements Describable {
         return $this;
     }
 
+    public function getLength(){
+        return $this->length;
+    }
+
     public function default($value){
         $this->default = $value;
         return $this;
+    }
+
+    public function getDefault(){
+        return $this->default;
     }
 
     public function nullable(){
@@ -43,86 +62,84 @@ class Field implements Describable {
         return $this;
     }
 
-    public function primaryKey(){
-        $constraint = new Constraint($this->table, $this->name, "PK_{$this->table}");
-        $constraint->primaryKey();
-        $this->constraints[] = $constraint;
-        return $this;
-    }
-
-    public function index(){
-        $constraint = new Constraint($this->table, $this->name, "INDEX_{$this->table}({$this->name})");
-        $constraint->index();
-        $this->constraints[] = $constraint;
-        return $this;
-    }
-
-    public function unique(){
-        $constraint = new Constraint($this->table, $this->name, "UNIQUE_{$this->table}({$this->name})");
-        $constraint->unique();
-        $this->constraints[] = $constraint;
-        return $this;
-    }
-
-    public function manyToMany($table, $field){
-        $constraint = new Constraint($this->table, $this->name, "FK_{$this->table}({$this->name})_{$table}({$field})_MANYTOMANY");
-        $constraint->manyToMany($table, $field);
-        $this->constraints[] = $constraint;
-        return $this;
-    }
-
-    public function manyToOne($table, $field){
-        $constraint = new Constraint($this->table, $this->name, "FK_{$this->table}({$this->name})_{$table}({$field})_MANYTOONE");
-        $constraint->manyToMany($table, $field);
-        $this->constraints[] = $constraint;
-        return $this;
-    }
-
-    public function oneToOne($table, $field){
-        $constraint = new Constraint($this->table, $this->name, "FK_{$this->table}({$this->name})_{$table}({$field})_ONETOONE");
-        $constraint->oneToOne($table, $field);
-        $this->constraints[] = $constraint;
-        return $this;
-    }
-
-    public function check($check){
-        $constraint = new Constraint($this->table, $this->name, "CHECK_{$this->table}({$this->name})");
-        $constraint->check($check);
-        $this->constraints[] = $constraint;
-        return $this;
+    public function getNullable(){
+        return $this->nullable;
     }
 
     public function autoIncrement(){
         $this->autoIncrement = true;
-		$constraint = new Constraint($this->table, $this->name);
-        $constraint->autoIncrement();
-        $this->constraints[] = $constraint;
+        $this->type('INT');
+        $this->length(11);
+        $this->primaryKey();
         return $this;
     }
 
-    /**
-     * @Deprecated
-     */
-    public function addConstraint($name = null){
-        $constraint = new Constraint($this->table, $this->name, $name);
-        $this->constraints[] = $constraint;
-        return $constraint;
+    public function getAutoIncrement(){
+        return $this->autoIncrement;
     }
+
+    public function primaryKey(){
+        $this->table->primaryKey($this->name);
+        $this->nullable = false;
+        return $this;
+    }
+
+    public function index(){
+        $this->table->indexKey($this->name);
+        return $this;
+    }
+
+    public function unique(){
+        $this->table->uniqueKey($this->name);
+        return $this;
+    }
+
+    public function check($check){
+        $constraint = new Constraint($this->table, $this, "CHECK_{$this->table->getName()}({$this->name})");
+        $constraint->check($check);
+        $this->table->addConstraint($constraint);
+        return $this;
+    }
+
+
+
+    public function manyToMany($table, $field){
+        $constraint = new Constraint($this->table, $this, "FK_{$this->table->getName()}({$this->name})_{$table}({$field})_MANYTOMANY");
+        $constraint->manyToMany($table, $field);
+        $this->table->addConstraint($constraint);
+        return $this;
+    }
+
+    public function manyToOne($table, $field){
+        $constraint = new Constraint($this->table, $this, "FK_{$this->table->getName()}({$this->name})_{$table}({$field})_MANYTOONE");
+        $constraint->manyToOne($table, $field);
+        $this->table->addConstraint($constraint);
+        return $this;
+    }
+
+    public function oneToOne($table, $field){
+        $constraint = new Constraint($this->table, $this, "FK_{$this->table->getName()}({$this->name})_{$table}({$field})_ONETOONE");
+        $constraint->oneToOne($table, $field);
+        $this->table->addConstraint($constraint);
+        $this->table->uniqueKey($this->name);
+        return $this;
+    }
+
+
 
     public function describe()
     {
         $props = [];
         $props[] = $this->name;
         $props[] = $this->length ? "{$this->type}({$this->length})" : $this->type;
-        $props[] = $this->default ? $this->nullable ? "DEFAULT NULL" : "DEFAULT {$this->default}" : NULL;
+        $props[] = $this->default ? $this->nullable ? "DEFAULT NULL" : "DEFAULT {$this->default}" : $this->nullable == false ? "NOT NULL" : NULL;
+        $props[] = $this->autoIncrement ? "AUTO_INCREMENT" : NULL;
 
-        return implode(' ', array_filter($props, function($e){
+        $fieldDecalaration = implode(' ', array_filter($props, function($e){
             return $e !== NULL;
         }));
-    }
 
-    public function getConstraints(){
-        return $this->constraints;
+        return $fieldDecalaration;
     }
 
 }
