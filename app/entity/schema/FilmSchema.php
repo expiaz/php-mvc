@@ -10,13 +10,23 @@ class FilmSchema{
 
         $table = new Table('film');
 
+        $table->prefix('f');
+
         $table->addField('id')
-            ->primaryKey()
-            ->type('int')
+            ->type('int');
+
+        $table->addConstraint('name')
+            ->on('field','field2')
+            ->primary();
+
+        $table->addConstraint('name')
+            ->on('field')
             ->autoIncrement();
 
-        $table->addField('acteur')
-            ->manyToMany('acteur','id');
+        $table->addConstraint('name')
+            ->on('field')
+            ->manyToMany('table','field')
+            ->addField();
 
         return $table->describe();
     }

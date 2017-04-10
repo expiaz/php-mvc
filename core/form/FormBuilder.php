@@ -9,7 +9,7 @@ abstract class FormBuilder{
 
     public static function buildFromEntity(Entity $o){
         if(!property_exists(get_class($o), '_schema')){
-            throw new NotConformEntityException("Please use ORM and CLI to build your entites from the database : 'php command.php migrate [<tableName>]'");
+            throw new NotConformEntityException("Please use ORM and CLI to build your entites from the database : 'php cli.php migrate [<tableName>]'");
         }
 
         if(is_null($o->getId()))
@@ -135,36 +135,6 @@ abstract class FormBuilder{
             $fieldCollection[] = $f;
         }
         return new Form($fieldCollection, $o);
-    }
-
-    private static function legacyBuildFromEntity(Entity $o){
-        $htmlFields = [];
-        $fields = get_class_vars(get_class($o));
-
-        foreach ($fields as $prop => $value){
-            $value = $o->$prop ?? $value;
-            if(!is_array($value) && !is_object($value) && $prop{0} !== '_'){
-                $f = new Field();
-                if($prop === 'id'){
-                    $f->type('hidden')
-                        ->value($value)
-                        ->required(true)
-                        ->name($prop);
-                }
-                else{
-                    $f->type('text')
-                        ->id($prop)
-                        ->placeholder($prop)
-                        ->name($prop)
-                        ->value($value)
-                        ->required(true)
-                        ->label();
-                }
-                $htmlFields[] = $f;
-            }
-        }
-
-        return new Form($htmlFields, $o);
     }
 
     public static function buildFromScratch(){

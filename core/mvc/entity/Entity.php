@@ -9,39 +9,19 @@ abstract class Entity{
     public $id;
     public $_modified = [];
     private $_model = null;
-    public $_table;
 
     public function __construct($init_args = [])
     {
-
-        $modelClass = Helper::getModelFilePathFromInstance($this);
-        $modelNs = Helper::getModelNamespaceFromInstance($this);
-        $this->_model = Cache::get($modelNs, true);
-        $this->_table = Helper::getTableNameFromInstance($this);
-
-        if(DEV)
-            echo '[' . get_class($this) . '::__construct] modelFilePath = ' . $modelClass . ' & modelNs = ' . $modelNs . '<br>';
-
-        /*if(!is_object($model)){
-            if(file_exists($modelClass)){
-                $model = new $modelNs();
-                Cache::set($modelNs, $model);
-            }
-            else
-                $model = null;
-        }
-        $this->_model = $model;
-        */
+        $this->_model = Cache::get(Helper::getModelNamespaceFromInstance($this), true);
 
         if(count($init_args)){
             $this->parseArgs($init_args);
         }
-
     }
 
     private function parseArgs($args){
         $props = null;
-        if((is_object($args[0]) || (is_array($args[0]) && $this->isAssociative($args[0]))) && count($args) === 1){
+        if((is_object($args[0]) || (is_array($args[0]) && Helper::isAssociative($args[0]))) && count($args) === 1){
             //we assume that every property is passed throught this object
             $props = is_array($args[0]) ? $args[0] : (array) $args[0];
         }
@@ -73,17 +53,6 @@ abstract class Entity{
                 $this->$func($v);
             }
         }
-    }
-
-    private function isAssociative(array $a){
-        return count(array_filter(array_keys($a), 'is_string')) > 0;
-    }
-
-    public function getModel($name = null){
-        if($name){
-            return Cache::get(Helper::getModelNamespaceFromName($name), true);
-        }
-        return $this->_model;
     }
 
     public function __call($function, $args){
@@ -120,29 +89,6 @@ abstract class Entity{
         if($v !== $this->$k){
             $this->_modified[$k] = $v;
         }
-    }
-
-    public function insert(){
-        if(!is_null($this->_model)){
-            $this->id = $this->_model->insert($this);
-            return $this->id;
-        }
-        return false;
-    }
-
-    public function update(){
-        if(!is_null($this->_model))
-            return $this->_model->update($this);
-        return false;
-    }
-
-    public function persist(){
-        echo '[Entity::persist]<br/>';
-        if(!is_null($this->_model)){
-            echo '[Entity::persist] model find<br/>';
-            return $this->_model->persist($this);
-        }
-        return false;
     }
 
 }

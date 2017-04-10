@@ -55,17 +55,10 @@ class Dispatcher{
         $action = $act ?? $this->_request['action'];
         $param = $p ?? $this->_request['param'];
 
-        $controllerClass = ucfirst(strtolower($controller)) . 'Controller';
-        $actionName = $action;
-        $fileName = CONTROLLER . $controllerClass . '.php';
-
+        $fileName = Helper::getControllerFilePathFromName($controller);
         if(!file_exists($fileName)){
 
-            //controller was the requested action
-            $actionName = strtolower($controller);
-
             // index controller
-            $controllerClass = 'IndexController';
             $controller = 'index';
 
             //trunc parameters
@@ -75,26 +68,29 @@ class Dispatcher{
                     : [$action];
             }
 
+            //controller was the requested action
+            $action = strtolower($controller);
         }
 
-        Query::setUrl($this->_url);
-        Query::setController($controller);
-
-        $this->load($controllerClass, $actionName, $param);
+        $this->load($controller, $action, $param);
     }
 
     private function load($controller, $action, $param){
-        $controllerNs = "App\\Controller\\{$controller}";
+        $controllerNs = Helper::getControllerNamespaceFromName($controller);
         $controllerClass = new $controllerNs();
+
         if(!$this->methodExists($controllerClass, $action)){
             $param = array_merge([$action],$param);
             $action = 'index';
         }
-        $request = new Request(array_slice($_GET,1),$_POST);
+        $request = new Request(array_slice($_GET,1),$_POST, $_FILES);
+
         Cache::set($controllerNs, $controllerClass);
         Query::setAction($action);
         Query::setParam($param);
         Query::setRequest($request);
+        Query::setUrl($this->_url);
+        Query::setController($controllerNs);
 
         if(DEV) {
             echo "[Dispatcher::load] controller = {$controller}, action = {$action}, param = ";

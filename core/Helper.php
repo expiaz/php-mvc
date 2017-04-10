@@ -4,8 +4,11 @@ namespace Core;
 abstract class Helper{
 
     public static function getClassNameFromInstance($instance){
-        $instanceNs = get_class($instance);
-        $instanceClass = substr($instanceNs, strrpos($instanceNs, '\\') + 1);
+        return self::getClassNameFromNamespace(get_class($instance));
+    }
+
+    public static function getClassNameFromNamespace($namespace){
+        $instanceClass = substr($namespace, strrpos($namespace, '\\') + 1);
         $name = self::normalizeName(str_replace('Entity','',str_replace('Model','',str_replace('Controller','',$instanceClass))));
         return $name;
     }
@@ -98,6 +101,10 @@ abstract class Helper{
         $name = self::normalizeName($name);
         $model = ENTITY . "{$name}Entity.php";
         return $model;
+    }
+
+    public static function isAssociative(array $a){
+        return count(array_filter(array_keys($a), 'is_string')) > 0;
     }
 
 }

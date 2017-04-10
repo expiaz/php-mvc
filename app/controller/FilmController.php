@@ -39,8 +39,10 @@ class FilmController extends Controller{
         $form->handleRequest($r);
 
         if($form->isSubmitted()){
+
             $film = $form->getData();
-            $film->persist();
+            $this->getModel()->persist($film);
+
             return Router::redirect([
                 'controller' => 'film',
                 'action' => 'index'

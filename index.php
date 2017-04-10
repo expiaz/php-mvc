@@ -1,10 +1,10 @@
 <?php
 
 define('DS', DIRECTORY_SEPARATOR);
-define('ROOT', dirname(__FILE__) . DS);
+define('ROOT', __DIR__ . DS);
 define('CORE', ROOT . 'core' . DS);
-require_once CORE . 'constants.php';
 
+require_once CORE . 'shared' . DS . 'constants.php';
 require_once CORE . 'Bootstrapper.php';
 require_once CORE . 'Dispatcher.php';
 

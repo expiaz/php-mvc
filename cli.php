@@ -1,7 +1,7 @@
 <?php
 
 if($argc < 2)
-    exit("command works like: 'php command.php <command>'\n");
+    exit("command works like: 'php cli.php <command>'\n");
 
 switch(strtolower($argv[1])){
     case 'migrate':

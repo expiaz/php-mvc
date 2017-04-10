@@ -11,16 +11,17 @@ class Bootstrapper{
     }
 
     public function loadStatics(){
-        require_once CORE . 'Autoload.php';
+        require_once CORE . 'Autoloader.php';
         require_once CORE . 'Helper.php';
         require_once CORE . 'Config.php';
+        require_once CORE_SHARED . 'webConstants.php';
         require_once CORE . 'Cache.php';
         require_once CORE_HTTP . 'Cookie.php';
         require_once CORE_HTTP . 'Session.php';
         require_once CORE_HTTP . 'Query.php';
         require_once CORE_HTTP . 'Router.php';
         require_once CORE_DATABASE . 'Database.php';
-        require_once CORE_DATABASE . 'ORM.php';
+        require_once CORE_ORM . 'ORM.php';
         require_once CORE_FORM . 'FormBuilder.php';
         require_once APP . 'route.php';
     }
@@ -33,7 +34,7 @@ class Bootstrapper{
     }
 
     public function initialize(){
-        Autoload::register();
+        Autoloader::register();
         Cache::init();
         database\Database::connect();
         http\Session::activate();

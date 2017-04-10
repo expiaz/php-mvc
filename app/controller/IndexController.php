@@ -16,15 +16,11 @@ class IndexController extends Controller{
     }
 
     public function index(){
-        var_dump(FilmSchema::describe());
-        echo implode("\n\n",FilmSchema::describe());
-        die();
-        /*
-        echo 'index';
+
         return View::render('error/404', [
             'error' => 'index'
         ]);
-        */
+
     }
 
     public function click($http, ...$parameters){

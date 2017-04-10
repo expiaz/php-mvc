@@ -2,6 +2,7 @@
 
 namespace Core\Mvc\View;
 
+use Core\Database\Database;
 use Core\Http\Query;
 use Core\Http\Session;
 
@@ -26,17 +27,24 @@ abstract class View
         $vars['title'] = Query::getAction();
 
         $vars['home'] = WEBROOT;
+
         echo self::capture($path,$vars);
-        return;
+
+        self::end();
     }
 
-    private static function capture($viewPath,$vars){
+    private static function capture($viewPath, $vars){
         ob_start();
         extract($vars, EXTR_SKIP);
         require_once LAYOUT . 'header.php';
         require_once($viewPath);
         require_once LAYOUT . 'footer.php';
         return ob_get_clean();
+    }
+
+    private static function end(){
+        Database::close();
+        exit(0);
     }
 
 }

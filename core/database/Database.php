@@ -20,6 +20,10 @@ abstract class Database{
         }
     }
 
+    public static function close(){
+        self::$_pdo = null;
+    }
+
     public static function getInstance(){
         if(self::$_pdo === null){
             self::connect();

@@ -151,6 +151,7 @@ class Constraint implements Describable {
 
     private function describeManyToMany(){
         $table = new Table("{$this->table}_{$this->referenceTable}");
+        $a = "a" . "b";
         $table->addField("{$this->table}_id")->primaryKey();
         $table->addField("{$this->referenceTable}_id")->primaryKey();
         $firstConstraint = $this->name ?? "FK_{$this->table}_{$this->referenceTable}({$this->table}_id)_{$this->table}({$this->field});";

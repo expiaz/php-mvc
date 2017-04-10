@@ -14,14 +14,9 @@ define('ENTITY', APP . 'entity' . DS);
 define('VIEW', APP . 'view' . DS);
 define('LAYOUT', VIEW . 'layout' . DS);
 
-
-
 define('CORE_MVC', CORE . 'mvc' . DS);
+define('CORE_SHARED', CORE . 'shared' . DS);
 define('CORE_HTTP', CORE . 'http' . DS);
 define('CORE_DATABASE', CORE . 'database' . DS);
 define('CORE_FORM', CORE . 'form' . DS);
-
-define('WEBHOST', $_SERVER['HTTP_HOST']);
-define('WEBROOT', 'http://' . WEBHOST . '/appsynth/');
-define('WEBAPP', WEBROOT . 'app/');
-define('WEBASSET', WEBAPP . 'assets/');
+define('CORE_ORM', CORE_DATABASE . 'orm' . DS);

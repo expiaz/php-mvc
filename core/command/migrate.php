@@ -2,7 +2,7 @@
 
 namespace Core\Command;
 
-require_once 'base.php';
+require_once 'Boot.php';
 
 Boot::boot();
 
