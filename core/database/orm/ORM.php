@@ -9,7 +9,7 @@ final class ORM{
     private static $_pdo = null;
 
     private static function getFieldChilds($fieldName){
-        $pdo = self::getPDO();
+        $pdo = static::getPDO();
         $sql = "SELECT * FROM {$fieldName}";
         $query = $pdo->query($sql);
         $childs = $query->fetchAll();
@@ -54,7 +54,7 @@ final class ORM{
                 break;
             case 'MUL':
                 $describe['type'] = 'select';
-                $describe['childs'] = self::getFieldChilds($field['Field']);
+                $describe['childs'] = static::getFieldChilds($field['Field']);
                 break;
             default:
                 break;
@@ -78,11 +78,11 @@ final class ORM{
     public static function describeTable($tableName){
         $table = [];
 
-        $pdo = self::getPDO();
+        $pdo = static::getPDO();
         $query = $pdo->query("DESCRIBE {$tableName}");
         $fields = $query->fetchAll();
         foreach ($fields as $field){
-            $table[] = self::describeField($field);
+            $table[] = static::describeField($field);
         }
 
         return $table;
@@ -90,23 +90,23 @@ final class ORM{
 
     public static function describe(){
         $bddSchema = [];
-        $pdo = self::getPDO();
+        $pdo = static::getPDO();
 
         $query = $pdo->query("SHOW TABLES");
         $tables = $query->fetchAll(PDO::FETCH_ASSOC);
         $tables = array_map(function($table){ return array_values($table)[0]; }, $tables);
 
         foreach ($tables as $table){
-            $bddSchema[$table] = self::describeTable($table);
+            $bddSchema[$table] = static::describeTable($table);
         }
 
         return $bddSchema;
     }
 
     private static function getPDO(){
-        if(self::$_pdo)
-            return self::$_pdo;
-        return self::$_pdo = Database::getInstance();
+        if(static::$_pdo)
+            return static::$_pdo;
+        return static::$_pdo = Database::getInstance();
     }
 
 }

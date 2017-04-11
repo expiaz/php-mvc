@@ -4,7 +4,7 @@ namespace Core\Exception;
 
 use Exception;
 
-class NotConformEntityException extends \Exception {
+class NotConformModelException extends \Exception {
 
     public function __construct($message = "", $code = 0, Exception $previous = null)
     {

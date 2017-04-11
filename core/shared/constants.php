@@ -10,7 +10,8 @@ if(DEV){
 define('APP', ROOT . 'app' . DS);
 define('CONTROLLER', APP . 'controller' . DS);
 define('MODEL', APP . 'model' . DS);
-define('ENTITY', APP . 'entity' . DS);
+define('ENTITY', MODEL);
+define('REPOSITORY', APP . 'repository' . DS);
 define('VIEW', APP . 'view' . DS);
 define('LAYOUT', VIEW . 'layout' . DS);
 

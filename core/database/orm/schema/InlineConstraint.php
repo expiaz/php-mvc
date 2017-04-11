@@ -28,13 +28,13 @@ class InlineConstraint implements Describable {
         $fields = '`' . implode('`, `', $this->fields) . '`';
         $typeName = implode('_', $this->fields);;
         switch ($this->type){
-            case self::PRIMARY_KEY:
+            case static::PRIMARY_KEY:
                 return "PRIMARY KEY ({$fields})";
                 break;
-            case self::INDEX:
+            case static::INDEX:
                 return "KEY `INDEX_{$typeName}` ({$fields})";
                 break;
-            case self::UNIQUE:
+            case static::UNIQUE:
                 return "UNIQUE KEY `UNIQUE_{$typeName}` ({$fields})";
                 break;
         }

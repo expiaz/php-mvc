@@ -11,9 +11,9 @@ abstract class Database{
     private static $_pdo = null;
 
     public static function connect(){
-        if(self::$_pdo === null){
+        if(static::$_pdo === null){
             try {
-                self::$_pdo = new PDO(Config::getDSN(), Config::getUser(), Config::getPwd(), Config::getOptions());
+                static::$_pdo = new PDO(Config::getDSN(), Config::getUser(), Config::getPwd(), Config::getOptions());
             } catch (PDOException $e) {
                 echo '[Database] Connexion échouée : ' . $e->getMessage();
             }
@@ -21,18 +21,18 @@ abstract class Database{
     }
 
     public static function close(){
-        self::$_pdo = null;
+        static::$_pdo = null;
     }
 
     public static function getInstance(){
-        if(self::$_pdo === null){
-            self::connect();
+        if(static::$_pdo === null){
+            static::connect();
         }
-        return self::$_pdo;
+        return static::$_pdo;
     }
 
     public static function raw($sql = 'SELECT NOW();',$param = []){
-        $query = self::$_pdo->prepare($sql);
+        $query = static::$_pdo->prepare($sql);
         $query->execute($param);
         return $query->fetchAll(PDO::FETCH_OBJ);
     }

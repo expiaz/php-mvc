@@ -17,27 +17,27 @@ abstract class Config{
         ];
 
     public static function getDSN(){
-        return self::$config['sgbd'] . ":host=" . self::$config['host'] . ";dbname=" . self::$config['bd'] . ";charset=" . self::$config['charset'];
+        return static::$config['sgbd'] . ":host=" . static::$config['host'] . ";dbname=" . static::$config['bd'] . ";charset=" . static::$config['charset'];
     }
 
     public static function getUser(){
-        return self::$config['user'];
+        return static::$config['user'];
     }
 
     public static function getPwd(){
-        return self::$config['password'];
+        return static::$config['password'];
     }
 
     public static function getOptions(){
-        return self::$config['options'];
+        return static::$config['options'];
     }
 
     public static function getDbName(){
-        return self::$config['bd'];
+        return static::$config['bd'];
     }
 
     public static function getBaseURI(){
-        return self::$config['baseURI'];
+        return static::$config['baseURI'];
     }
 
 }

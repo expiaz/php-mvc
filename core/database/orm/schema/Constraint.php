@@ -35,21 +35,21 @@ class Constraint implements Describable {
     public function primaryKey(){
         $this->referenceField = $this->field;
         $this->referenceTable = $this->table;
-        $this->type = self::PRIMARY_KEY;
+        $this->type = static::PRIMARY_KEY;
         return $this;
     }
 
     public function oneToOne($table, $field){
         $this->referenceTable = $table;
         $this->referenceField = $field;
-        $this->type = self::ONE_TO_ONE;
+        $this->type = static::ONE_TO_ONE;
         return $this;
     }
 
     public function manyToOne($table, $field){
         $this->referenceTable = $table;
         $this->referenceField = $field;
-        $this->type = self::MANY_TO_ONE;
+        $this->type = static::MANY_TO_ONE;
         return $this;
     }
 
@@ -58,49 +58,49 @@ class Constraint implements Describable {
         $this->referenceField = $field;
         $query = Database::raw("DESCRIBE {$table} {$field};")[0];
         $this->referenceFieldType = $query->Type;
-        $this->type = self::MANY_TO_MANY;
+        $this->type = static::MANY_TO_MANY;
         return $this;
     }
 
     public function index(){
-        $this->type = self::INDEX;
+        $this->type = static::INDEX;
         return $this;
     }
 
     public function unique(){
-        $this->type = self::UNIQUE;
+        $this->type = static::UNIQUE;
         return $this;
     }
 
     public function check($check){
-        $this->type = self::CHECK;
+        $this->type = static::CHECK;
         $this->mathematicalConditionnal = $check;
         return $this;
     }
 	
 	public function autoIncrement(){
-		$this->type = self::AI;
+		$this->type = static::AI;
 		return $this;
 	}
 
     public function describe(): array
     {
         switch($this->type){
-            case self::PRIMARY_KEY:
+            case static::PRIMARY_KEY:
                 return $this->describePrimaryKey();
-            case self::MANY_TO_MANY:
+            case static::MANY_TO_MANY:
                 return $this->describeManyToMany();
-            case self::MANY_TO_ONE:
+            case static::MANY_TO_ONE:
                 return $this->describeManyToOne();
-            case self::ONE_TO_ONE:
+            case static::ONE_TO_ONE:
                 return $this->describeOneToOne();
-            case self::CHECK:
+            case static::CHECK:
                 return $this->describeCheck();
-            case self::INDEX:
+            case static::INDEX:
                 return $this->describeIndex();
-            case self::UNIQUE:
+            case static::UNIQUE:
                 return $this->describeUnique();
-			case self::AI:
+			case static::AI:
 				return $this->describeAI();
         }
     }

@@ -3,108 +3,192 @@ namespace Core;
 
 abstract class Helper{
 
+    /**
+     * return the class name without the class type
+     * e.g : IndexController becomes Index
+     * @param $instance
+     * @return string
+     */
     public static function getClassNameFromInstance($instance){
-        return self::getClassNameFromNamespace(get_class($instance));
+        return static::getClassNameFromNamespace(get_class($instance));
     }
 
     public static function getClassNameFromNamespace($namespace){
         $instanceClass = substr($namespace, strrpos($namespace, '\\') + 1);
-        $name = self::normalizeName(str_replace('Entity','',str_replace('Model','',str_replace('Controller','',$instanceClass))));
-        return $name;
+        return static::normalizeName(str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass))));
     }
 
+
+    /**
+     * return the table name associated with the class
+     * e.g : IndexController returns index
+     * @param $instance
+     * @return string
+     */
     public static function getTableNameFromInstance($instance){
-        $instanceNs = get_class($instance);
-        $instanceClass = substr($instanceNs, strrpos($instanceNs, '\\') + 1);
-        $name = strtolower(str_replace('Entity','',str_replace('Model','',str_replace('Controller','',$instanceClass))));
-        return $name;
+        return static::getTableNameFromNamespace(get_class($instance));
+    }
+
+    public static function getTableNameFromNamespace($namespace){
+        return strtolower(static::getClassNameFromNamespace($namespace));
     }
 
 
+    /**
+     * returns the type of the class (Repo/Model/Controller)
+     * e.g : IndexController returns Controller
+     * @param $instance
+     * @return string
+     */
+    public static function getClassTypeFromInstance($instance){
+        return static::getClassTypeFromNamespace(get_class($instance));
+    }
+
+    public static function getClassTypeFromNamespace($namespace){
+        $name = substr($namespace, strrpos($namespace, '\\') + 1);
+        if(strpos($name, 'Model') !== false){
+            return 'Model';
+        }
+        if(strpos($name, 'Controller') !== false){
+            return 'Controller';
+        }
+        if(strpos($name, 'Repository') !== false){
+            return 'Repository';
+        }
+    }
+
+    /**
+     * return the namespace of an instance
+     * e.g instance of App\Controller\IndexController returns App\Controller
+     * @param $instance
+     * @return bool|string
+     */
+    public static function getNamespaceFromInstance($instance){
+        $instanceNs = get_class($instance);
+        return substr($instanceNs, 0, strrpos($instanceNs, '\\'));
+    }
+
+    /**
+     * MyAweSomeClaSs becomes Myawesomeclass
+     * @param $name
+     * @return string
+     */
     public static function normalizeName($name){
         return ucfirst(strtolower($name));
     }
 
-    public static function getNamespaceFromInstance($instance){
-        $instanceNs = get_class($instance);
-        $ns = substr($instanceNs, 0, strrpos($instanceNs, '\\'));
-        return $ns;
+    /**
+     * is an array associative ? (["key" => "value"])
+     * @param array $a
+     * @return bool
+     */
+    public static function isAssociative(array $a){
+        return count(array_filter(array_keys($a), 'is_string')) > 0;
     }
 
+
+
     public static function getModelNamespaceFromInstance($instance){
-        $name = self::getClassNameFromInstance($instance);
+        $name = static::getClassNameFromInstance($instance);
         $model = "App\\Model\\{$name}Model";
         return $model;
     }
 
     public static function getModelFilePathFromInstance($instance){
-        $name = self::getClassNameFromInstance($instance);
+        $name = static::getClassNameFromInstance($instance);
         $model = MODEL . "{$name}Model.php";
         return $model;
     }
+    
 
     public static function getControllerNamespaceFromInstance($instance){
-        $name = self::getClassNameFromInstance($instance);
+        $name = static::getClassNameFromInstance($instance);
         $model = "App\\Controller\\{$name}Controller";
         return $model;
     }
 
     public static function getControllerFilePathFromInstance($instance){
-        $name = self::getClassNameFromInstance($instance);
+        $name = static::getClassNameFromInstance($instance);
         $model = CONTROLLER . "{$name}Controller.php";
         return $model;
     }
+    
 
-    public static function getEntityNamespaceFromInstance($instance){
-        $name = self::getClassNameFromInstance($instance);
-        $model = "App\\Entity\\{$name}Entity";
+    public static function getRepositoryNamespaceFromInstance($instance){
+        $name = static::getClassNameFromInstance($instance);
+        $model = "App\\Repository\\{$name}Repository";
         return $model;
     }
 
-    public static function getEntityFilePathFromInstance($instance){
-        $name = self::getClassNameFromInstance($instance);
-        $model = ENTITY . "{$name}Entity.php";
+    public static function getRepositoryFilePathFromInstance($instance){
+        $name = static::getClassNameFromInstance($instance);
+        $model = REPOSITORY . "{$name}Repository.php";
         return $model;
     }
+    
+    
 
     public static function getModelNamespaceFromName($name){
-        $name = self::normalizeName($name);
+        $name = static::normalizeName($name);
         $model = "App\\Model\\{$name}Model";
         return $model;
     }
 
     public static function getModelFilePathFromName($name){
-        $name = self::normalizeName($name);
+        $name = static::normalizeName($name);
         $model = MODEL . "{$name}Model.php";
         return $model;
     }
+    
 
     public static function getControllerNamespaceFromName($name){
-        $name = self::normalizeName($name);
+        $name = static::normalizeName($name);
         $model = "App\\Controller\\{$name}Controller";
         return $model;
     }
 
     public static function getControllerFilePathFromName($name){
-        $name = self::normalizeName($name);
+        $name = static::normalizeName($name);
         $model = CONTROLLER . "{$name}Controller.php";
         return $model;
     }
+    
 
-    public static function getEntityNamespaceFromName($name){
-        $name = self::normalizeName($name);
-        $model = "App\\Entity\\{$name}Entity";
+    public static function getRepositoryNamespaceFromName($name){
+        $name = static::normalizeName($name);
+        $model = "App\\Repository\\{$name}Repository";
         return $model;
     }
 
-    public static function getEntityFilePathFromName($name){
-        $name = self::normalizeName($name);
-        $model = ENTITY . "{$name}Entity.php";
+    public static function getRepositoryFilePathFromName($name){
+        $name = static::normalizeName($name);
+        $model = REPOSITORY . "{$name}Repository.php";
         return $model;
     }
+    
 
-    public static function isAssociative(array $a){
-        return count(array_filter(array_keys($a), 'is_string')) > 0;
+    
+    
+    
+
+    public static function isValidModelNamespace($namespace){
+        return static::isValidNamespace($namespace, 'Model');
+    }
+
+    public static function isValidControllerNamespace($namespace){
+        return static::isValidNamespaceForClass($namespace, 'Controller');
+    }
+
+    public static function isValidRepositoryNamespace($namespace){
+        return static::isValidNamespaceForClass($namespace, 'Repository');
+    }
+
+    public static function isValidNamespaceForClass($namespace, $class){
+        return static::getClassTypeFromNamespace($namespace) === $class;
+    }
+
+    public static function isValidNamespace($namespace){
+        return static::isValidRepositoryNamespace($namespace) || static::isValidControllerNamespace($namespace) || static::isValidModelNamespace($namespace);
     }
 
 }

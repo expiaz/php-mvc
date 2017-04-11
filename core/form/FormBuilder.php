@@ -2,20 +2,20 @@
 
 namespace Core\Form;
 
-use Core\Exception\NotConformEntityException;
-use Core\Mvc\Entity\Entity;
+use Core\Exception\NotConformModelException;
+use Core\Mvc\Model\Model;
 
 abstract class FormBuilder{
 
     public static function buildFromEntity(Entity $o){
         if(!property_exists(get_class($o), '_schema')){
-            throw new NotConformEntityException("Please use ORM and CLI to build your entites from the database : 'php cli.php migrate [<tableName>]'");
+            throw new NotConformModelException("Please use ORM and CLI to build your entites from the database : 'php cli.php migrate [<tableName>]'");
         }
 
         if(is_null($o->getId()))
-            return self::buildFromEmptyEntity($o);
+            return static::buildFromEmptyEntity($o);
 
-        return self::buildFromExistingEntity($o);
+        return static::buildFromExistingEntity($o);
     }
 
     public static function buildFromEmptyEntity(Entity $o){

@@ -10,7 +10,7 @@ final class ORM{
     private static $_pdo = null;
 
     private static function getFieldChilds($fieldName){
-        $pdo = self::getPDO();
+        $pdo = static::getPDO();
         $sql = "SELECT * FROM {$fieldName}";
         $query = $pdo->query($sql);
         $childs = $query->fetchAll();
@@ -55,7 +55,7 @@ final class ORM{
                 break;
             case 'MUL':
                 $describe['type'] = 'select';
-                $describe['childs'] = self::getFieldChilds($field['Field']);
+                $describe['childs'] = static::getFieldChilds($field['Field']);
                 break;
             default:
                 break;
@@ -74,13 +74,13 @@ final class ORM{
 
     public static function describeTable($tableName){
         $table = [];
-        $pdo = self::getPDO();
+        $pdo = static::getPDO();
 
         try{
             $query = $pdo->query("DESCRIBE {$tableName};");
             $fields = $query->fetchAll();
             foreach ($fields as $field){
-                $table[] = self::describeField($field);
+                $table[] = static::describeField($field);
             }
             return $table;
         }
@@ -95,11 +95,11 @@ final class ORM{
     public static function describe(){
         $bdd = [];
 
-        $pdo = self::getPDO();
+        $pdo = static::getPDO();
         $query = $pdo->query("SHOW TABLES;");
         $tables = $query->fetchAll();
         foreach ($tables as $table){
-            $tableSchema = self::describeTable($table[0]);
+            $tableSchema = static::describeTable($table[0]);
             if($tableSchema)
                 $bdd[$table[0]]  = $tableSchema;
         }
@@ -108,16 +108,16 @@ final class ORM{
     }
 
     private static function getPDO(){
-        if(self::$_pdo)
-            return self::$_pdo;
-        return self::$_pdo = Database::getInstance();
+        if(static::$_pdo)
+            return static::$_pdo;
+        return static::$_pdo = Database::getInstance();
     }
 
     public static function generateEntity($table = [], $force = false){
         if(count($table)){
             foreach ($table as $t){
                 try{
-                    $schema = self::describeTable($t);
+                    $schema = static::describeTable($t);
                     new EntityGenerator($t, $schema, $force);
                 }
                 catch (\Exception $e){
@@ -126,7 +126,7 @@ final class ORM{
             }
         }
         else{
-            foreach (self::describe() as $table => $schema) {
+            foreach (static::describe() as $table => $schema) {
                 new EntityGenerator($table, $schema, $force);
             }
         }

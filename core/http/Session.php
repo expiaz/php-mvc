@@ -7,37 +7,41 @@ abstract class Session{
     private static $_on = false;
 
     public static function activate(){
-        if(self::$_on === true)
+        if(static::$_on === true)
             return;
 
-        self::$_on = true;
+        static::$_on = true;
         session_start();
     }
 
     public static function destroy(){
-        if(self::$_on === false)
+        if(static::$_on === false)
             return;
 
-        self::$_on = false;
+        static::$_on = false;
         session_destroy();
     }
 
     public static function set($k,$v){
-        if(self::$_on === false)
+        if(static::$_on === false)
             return;
 
         $_SESSION[$k] = $v;
     }
 
     public static function get($k){
-        if(self::$_on === false)
+        if(static::$_on === false)
             return;
 
         return $_SESSION[$k] ?? null;
     }
 
+    public static function exists($k){
+        return isset($_SESSION[$k]);
+    }
+
     public static function delete($k){
-        if(self::$_on === false)
+        if(static::$_on === false)
             return;
 
         if(isset($_SESSION[$k])){
@@ -46,11 +50,11 @@ abstract class Session{
     }
 
     public static function flush(){
-        if(self::$_on === false)
+        if(static::$_on === false)
             return;
 
-        self::destroy();
-        self::activate();
+        static::destroy();
+        static::activate();
     }
 
 }

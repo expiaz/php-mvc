@@ -11,54 +11,54 @@ abstract class Query{
 
 
     public static function setController($controller){
-        self::$_controller = $controller;
+        static::$_controller = $controller;
     }
 
     public static function setAction($action){
-        self::$_action = $action;
+        static::$_action = $action;
     }
 
     public static function setParam($param){
-        self::$_param = $param;
+        static::$_param = $param;
     }
 
     public static function setUrl($url){
-        self::$_url = $url;
+        static::$_url = $url;
     }
 
     public static function setRequest($request)
     {
-        self::$_request = $request;
+        static::$_request = $request;
     }
 
 
     public static function getController(){
-        return self::$_controller;
+        return static::$_controller;
     }
 
     public static function getAction(){
-        return self::$_action;
+        return static::$_action;
     }
 
     public static function getParam(){
-        return self::$_param;
+        return static::$_param;
     }
 
     public static function getRequest()
     {
-        return self::$_request;
+        return static::$_request;
     }
 
     public static function getDisplayedUrl(){
-        return self::$_url;
+        return static::$_url;
     }
 
     public static function getQueriedUrl(){
-        return implode('/', array_merge([self::$_controller,self::$_action],self::$_param));
+        return implode('/', array_merge([static::$_controller,static::$_action],static::$_param));
     }
 
     public static function getHttpHeaders(){
-        return 'POST : ' . implode(', ',self::$_http['POST']) . ' & GET : ' . implode(', ',self::$_http['GET']);
+        return 'POST : ' . implode(', ',static::$_http['POST']) . ' & GET : ' . implode(', ',static::$_http['GET']);
     }
 
     public static function build($controller = null, $action = null, $param = null, $get = null){

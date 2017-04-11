@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Schema;
+namespace App\Model\Schema;
 
 use Core\Database\Orm\Schema\Table;
 

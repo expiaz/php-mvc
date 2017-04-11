@@ -6,20 +6,20 @@ use Core\Helper;
 
 abstract class Controller{
 
-    private $model = null;
+    private $repository = null;
 
     public function __construct()
     {
-        $this->model = Cache::get(Helper::getModelNamespaceFromInstance($this), true);
+        $this->model = Cache::get(Helper::getRepositoryNamespaceFromInstance($this), true);
     }
 
-    public function getModel($name = null){
-        if($name){
-            if(is_object($name))
+    public function getRepository($name = null){
+        if(! is_null($name)){
+            if($name instanceof Model || $name instanceof Repository || $name instanceof Controller)
                 $name = Helper::getClassNameFromInstance($name);
-            elseif (is_string($name) && preg_match('/(Entity)|(Model)|(Controller)/',$name))
+            elseif (Helper::isValidNamespace($name))
                 $name = Helper::getClassNameFromNamespace($name);
-            return Cache::get(Helper::getModelNamespaceFromName($name), true);
+            return Cache::get(Helper::getRepositoryNamespaceFromName($name), true);
         }
         return $this->model;
     }

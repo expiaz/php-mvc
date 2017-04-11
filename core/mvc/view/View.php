@@ -20,17 +20,17 @@ abstract class View
         }
 
         $vars['connected'] = [
-            'link' => Session::get('connected') ? Query::build('index', 'deconnexion') : Query::build('index', 'connexion'),
-            'message' => Session::get('connected') ? 'deconnexion' : 'connexion',
+            'link' => Session::exists('connected') ? Query::build('index', 'deconnexion') : Query::build('index', 'connexion'),
+            'message' => Session::exists('connected') ? 'deconnexion' : 'connexion'
         ];
 
         $vars['title'] = Query::getAction();
 
         $vars['home'] = WEBROOT;
 
-        echo self::capture($path,$vars);
+        echo static::capture($path,$vars);
 
-        self::end();
+        static::end();
     }
 
     private static function capture($viewPath, $vars){

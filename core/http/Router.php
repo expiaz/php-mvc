@@ -16,7 +16,7 @@ abstract class Router{
 
         $route = $route === '/' ? $route : trim($route,'/');
 
-        if(self::isDefined($route)){
+        if(static::isDefined($route)){
             return;
         }
 
@@ -33,10 +33,10 @@ abstract class Router{
         $routeEntry['param'] = $param;
         $routeEntry['regex'] = $regex;
 
-        if(self::isClosure($handler)){
+        if(static::isClosure($handler)){
             $routeEntry['type'] = 'CLOSURE';
             $routeEntry['handler'] = $handler;
-            self::$_routes[] = $routeEntry;
+            static::$_routes[] = $routeEntry;
 
             return;
         }
@@ -44,7 +44,7 @@ abstract class Router{
         if(is_array($handler)) {
             $routeEntry['type'] = 'CONTROLLER';
             $routeEntry['handler'] = $handler;
-            self::$_routes[] = $routeEntry;
+            static::$_routes[] = $routeEntry;
 
             return;
         }
@@ -65,9 +65,9 @@ abstract class Router{
             'action' => $action
         ];
 
-        self::$_routes[] = $routeEntry;
+        static::$_routes[] = $routeEntry;
 
-        usort(self::$_routes, function($a,$b){
+        usort(static::$_routes, function($a,$b){
             return $b['regex'] <=> $a['regex'];
         });
 
@@ -81,7 +81,7 @@ abstract class Router{
             $route = trim($route, '/');
         }
 
-        foreach (self::$_routes as $r){
+        foreach (static::$_routes as $r){
             if(DEV){
                 echo '[Router::apply] preg_match(' . $r['regex'] . ', ' . $route . ') <br>';
             }
@@ -114,7 +114,7 @@ abstract class Router{
     }
 
     private static function isDefined($route){
-        foreach (self::$_routes as $r) {
+        foreach (static::$_routes as $r) {
             if($route === $r['route']){
                 return true;
             }
