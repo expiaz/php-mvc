@@ -17,6 +17,8 @@ abstract class Cache{
     }
 
     public static function get($key, $createInstanceAndReturnItIfNotSet = false){
+        if(is_object($key))
+            $key = get_class($key);
         if(!isset(static::$_cached[$key])){
             if($createInstanceAndReturnItIfNotSet){
                 try{

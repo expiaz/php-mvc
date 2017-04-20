@@ -3,7 +3,7 @@
 namespace Core\Form;
 
 use Core\Http\Request;
-use Core\Mvc\Entity\Entity;
+use Core\Mvc\Model\Model;
 
 class Form{
 
@@ -18,7 +18,7 @@ class Form{
     private $container;
     private $isSubmitted;
 
-    public function __construct($fieldCollection = [], Entity $entity = null)
+    public function __construct(array &$fieldCollection = [], Model $entity = null)
     {
         $this->id = null;
         $this->class = null;
@@ -98,7 +98,7 @@ class Form{
         if(!$this->hasSubmitButton)
             $this->field((new Field())->type('submit')->name('submit')->value('submit'));
 
-        $out .= implode('<br/>', array_map(function($f){
+        $out .= implode('<br/>', array_map(function(Field $f){
             return $f->create();
         }, $this->fields));
 

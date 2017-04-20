@@ -2,33 +2,42 @@
 
 namespace App\Model\Schema;
 
+use Core\Database\Orm\Schema\Schema;
 use Core\Database\Orm\Schema\Table;
 
 class FilmSchema{
 
-    public static function describe(){
+    /*
+    public function __construct(){
+
+        Schema::create(FilmSchema::class, 'tableName', function (Table $table){
+            $table->prefix('f');
+
+            $table->addField('id')
+                ->type('int')
+                ->primaryKey();
+
+            $table->addField('name')
+                ->type('varchar')
+                ->length(200);
+        });
+
+    }
+    */
+
+    public function schema(): Table{
 
         $table = new Table('film');
 
-        $table->prefix('f');
-
         $table->addField('id')
-            ->type('int');
+            ->type('int')
+            ->primaryKey();
 
-        $table->addConstraint('name')
-            ->on('field','field2')
-            ->primary();
+        $table->addField('name')
+            ->type('varchar')
+            ->length(200);
 
-        $table->addConstraint('name')
-            ->on('field')
-            ->autoIncrement();
-
-        $table->addConstraint('name')
-            ->on('field')
-            ->manyToMany('table','field')
-            ->addField();
-
-        return $table->describe();
+        return $table;
     }
 
 }

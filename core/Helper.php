@@ -15,7 +15,13 @@ abstract class Helper{
 
     public static function getClassNameFromNamespace($namespace){
         $instanceClass = substr($namespace, strrpos($namespace, '\\') + 1);
-        return static::normalizeName(str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass))));
+        $v =  static::normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
+        return $v;
+    }
+
+    public static function getClassNameFromFilePath($path){
+        $instanceClass =  substr($path,strrpos($path, DS) + 1);
+        return static::normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
     }
 
 
@@ -45,7 +51,12 @@ abstract class Helper{
     }
 
     public static function getClassTypeFromNamespace($namespace){
-        $name = substr($namespace, strrpos($namespace, '\\') + 1);
+        $namespace = rtrim($namespace, '\\');
+        $pos = strrpos($namespace, '\\');
+        if($pos && strlen($namespace) - 1 >= $pos)
+            $name = substr($namespace, strrpos($namespace, '\\') + 1);
+        else
+            return $namespace;
         if(strpos($name, 'Model') !== false){
             return 'Model';
         }
@@ -54,6 +65,9 @@ abstract class Helper{
         }
         if(strpos($name, 'Repository') !== false){
             return 'Repository';
+        }
+        if(strpos($name, 'Schema') !== false){
+            return 'Schema';
         }
     }
 
@@ -165,10 +179,13 @@ abstract class Helper{
         $model = REPOSITORY . "{$name}Repository.php";
         return $model;
     }
-    
 
-    
-    
+
+    public static function getSchemaNamespaceFromName($name){
+        $name = static::normalizeName($name);
+        $schema = "App\\Model\\Schema\\{$name}Schema";
+        return $schema;
+    }
     
 
     public static function isValidModelNamespace($namespace){
@@ -183,12 +200,20 @@ abstract class Helper{
         return static::isValidNamespaceForClass($namespace, 'Repository');
     }
 
+    public static function isValidSchemaNamespace($namespace){
+        return static::isValidNamespaceForClass($namespace, 'Schema');
+    }
+
     public static function isValidNamespaceForClass($namespace, $class){
         return static::getClassTypeFromNamespace($namespace) === $class;
     }
 
     public static function isValidNamespace($namespace){
-        return static::isValidRepositoryNamespace($namespace) || static::isValidControllerNamespace($namespace) || static::isValidModelNamespace($namespace);
+
+        $v =  preg_match("/^App[\\\](Model|Schema|Repository|Controller)[\\\]\w+$/",$namespace);
+        //echo "Helper::isValidNamespace {$namespace}" . ($v ? " y" : " n") . "\n<br>";
+        return $v;
+        return static::isValidRepositoryNamespace($namespace) || static::isValidControllerNamespace($namespace) || static::isValidModelNamespace($namespace) || static::isValidSchemaNamespace($namespace);
     }
 
 }

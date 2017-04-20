@@ -2,143 +2,139 @@
 
 namespace Core\Form;
 
-use Core\Exception\NotConformModelException;
+use Closure;
+use Core\Database\Database;
+use Core\Database\Orm\Schema\Constraint;
 use Core\Mvc\Model\Model;
 
 abstract class FormBuilder{
 
-    public static function buildFromEntity(Entity $o){
-        if(!property_exists(get_class($o), '_schema')){
-            throw new NotConformModelException("Please use ORM and CLI to build your entites from the database : 'php cli.php migrate [<tableName>]'");
-        }
+    public static function &toFormSchema(&$baseSchema){
+        $fields = [];
+        foreach ($baseSchema['fields'] as $field){
+            $description = [];
 
-        if(is_null($o->getId()))
-            return static::buildFromEmptyEntity($o);
+            $description['name'] = $field['name'];
 
-        return static::buildFromExistingEntity($o);
-    }
-
-    public static function buildFromEmptyEntity(Entity $o){
-        $fieldCollection = [];
-        $BaseProperties = get_class_vars(get_class($o));
-        $schema = $o->_schema;
-
-        foreach ($schema as $field){
-            $f = (new Field())
-                ->type($field['type'])
-                ->name($field['name']);
-
-            switch($field['type']){
-                case 'hidden':
-                    if(!is_null($BaseProperties[$field['name']]))
-                        $f->value($BaseProperties[$field['name']]);
-                    elseif(!is_null($field['value']))
-                        $f->value($field['value']);
-                    $f->required();
-                    break;
-                case 'select':
-                    $f->placeholder($field['name'])
-                        ->id($field['name'])
-                        ->label();
-                    foreach ($field['childs'] as $child){
-                        $selected = !is_null($BaseProperties[$field['name']]) && $BaseProperties[$field['name']]
-                                ? true
-                                : !is_null($field['value']) && $field['value'] == $child['value']
-                                    ? true
-                                    : false;
-                        $f->option($child['value'], $child['name'], $selected);
-                    }
-                    if($field['required'])
-                        $f->required();
-                    break;
-                default:
-                    $f->placeholder($field['name'])
-                        ->id($field['name'])
-                        ->label();
-
-                    if(!is_null($BaseProperties[$field['name']]))
-                        $f->value($BaseProperties[$field['name']]);
-                    elseif(!is_null($field['value']))
-                        $f->value($field['value']);
-
-                    if($field['required'])
-                        $f->required();
-                    if(isset($field['maxlength']))
-                        $f->maxlength($field['maxlength']);
-
-                    break;
+            if(preg_match('#char|text#i',$field['type'])){
+                $description['type'] = 'text';
+            }
+            elseif(preg_match('#date|time#i',$field['type'])){
+                $description['type'] = 'date';
+            }
+            else{
+                $description['type'] = 'number';
             }
 
-            $fieldCollection[] = $f;
-        }
-        return new Form($fieldCollection, $o);
-    }
-
-    public static function buildFromExistingEntity(Entity $o){
-        $fieldCollection = [];
-        $BaseProperties = get_class_vars(get_class($o));
-        $ObjectProperties = get_object_vars($o);
-        $schema = $o->_schema;
-
-        foreach ($schema as $field){
-            $f = (new Field())
-                ->type($field['type'])
-                ->name($field['name']);
-
-            switch($field['type']){
-                case 'hidden':
-                    if(!is_null($ObjectProperties[$field['name']]))
-                        $f->value($ObjectProperties[$field['name']]);
-                    elseif(!is_null($BaseProperties[$field['name']]))
-                        $f->value($BaseProperties[$field['name']]);
-                    elseif(!is_null($field['value']))
-                        $f->value($field['value']);
-                    $f->required();
-                    break;
-                case 'select':
-                    $f->placeholder($field['name'])
-                        ->id($field['name'])
-                        ->label();
-                    foreach ($field['childs'] as $child){
-                        $selected = !is_null($ObjectProperties[$field['name']]) && $ObjectProperties[$field['name']] == $child['value']
-                            ? true
-                            : (!is_null($BaseProperties[$field['name']]) && $BaseProperties[$field['name']]
-                                ? true
-                                : (!is_null($field['value']) && $field['value'] == $child['value']
-                                    ? true
-                                    : false));
-                        $f->option($child['value'], $child['name'], $selected);
-                    }
-                    if($field['required'])
-                        $f->required();
-                    break;
-                default:
-                    $f->placeholder($field['name'])
-                        ->id($field['name'])
-                        ->label();
-
-                    if(!is_null($ObjectProperties[$field['name']]))
-                        $f->value($ObjectProperties[$field['name']]);
-                    elseif(!is_null($BaseProperties[$field['name']]))
-                        $f->value($BaseProperties[$field['name']]);
-                    elseif(!is_null($field['value']))
-                        $f->value($field['value']);
-
-                    if($field['required'])
-                        $f->required();
-                    if(isset($field['maxlength']))
-                        $f->maxlength($field['maxlength']);
-
-                    break;
+            if(! is_null($field['length'])){
+                $description['maxlength'] = $field['length'];
+                if($field['length'] > 200 && $description['type'] == 'text')
+                    $description['type'] = 'textarea';
+            }
+            else{
+                $description['maxlength'] = null;
             }
 
-            $fieldCollection[] = $f;
+
+            $description['required'] = $field['null'] ? true : false;
+
+            if(! is_null($field['default'])){
+                if($field['default'] == 'NOT NULL'){
+                    $description['required'] = true;
+                    $description['value'] = null;
+                }
+                elseif($field['default'] == 'NULL'){
+                    $description['required'] = false;
+                    $description['value'] = null;
+                }
+                else{
+                    $description['value'] = $field['default'];
+                }
+            }
+            else{
+                $description['value'] = NULL;
+            }
+
+
+            foreach ($field['constraints'] as $constraint){
+                switch ($constraint['type']){
+
+                    case Constraint::PRIMARY_KEY:
+                        if($field['auto']){
+                            $description['type'] = 'hidden';
+                            if($description['value'])
+                                $description['required'] = true;
+                            else
+                                $description['required'] = false;
+                        }
+                        break;
+                    case Constraint::INDEX:
+                    case Constraint::UNIQUE:
+                        $description['required'] = true;
+                        break;
+
+
+                    case Constraint::ONE_TO_ONE:
+                    case Constraint::MANY_TO_ONE:
+                    case Constraint::MANY_TO_MANY:
+                        $description['type'] = 'select';
+                        if($constraint['type'] == Constraint::MANY_TO_MANY) $description['multiple'] = true;
+                        else $description['multiple'] = false;
+                        $opts = Database::raw("SELECT {$constraint["field"]} AS option FROM {$constraint["table"]};");
+                        $description['options'] = [];
+                        foreach($opts as $o){
+                            $description['options'][] = ["value" => $o->option, "content" => $o->option, 'selected' => $description['value'] && $description['value'] == $o->option ? true : false];
+                        }
+                        break;
+                }
+            }
+
+            $fields[] = $description;
         }
-        return new Form($fieldCollection, $o);
+        return $fields;
     }
 
-    public static function buildFromScratch(){
-        return new Form();
+    public static function build(Model $model){
+        $schema = $model->getSchema();
+        $fields = static::toFormSchema($schema);
+        $fieldsCollection = [];
+        $needHydrate = false;
+
+        foreach ($fields as $field){
+            if(preg_match('/id/i',$field['name']) && !is_null($field['value']))
+                $needHydrate = true;
+
+            $f = new Field();
+            $f->name($field['name']);
+            $f->type($field['type']);
+            $f->class($field['name']);
+            $f->id($field['name']);
+            $f->required($field['required']);
+            if(!is_null($field['value']))
+                $f->value($field['value']);
+            if(!is_null($field['maxlength']))
+                $f->maxlength($field['maxlength']);
+            if(isset($field['multiple']) && $field['multiple'])
+                $f->multiple();
+            if(isset($field['options']) && is_array($field['options']))
+                foreach ($field['options'] as $option)
+                    $f->option($option['value'], $option['content'], $option['selected']);
+            $f->label();
+            $f->placeholder($field['name']);
+            $fieldsCollection[] = $f;
+        }
+        $fieldsCollection[0]->focus();
+        if($needHydrate)
+            return static::hydrate($fieldsCollection, $model);
+        else
+            return new Form($fieldsCollection, $model);
+    }
+
+    private static function hydrate(array &$fieldCollection, Model $model){
+        foreach ($fieldCollection as $field){
+            $field->value($model->{'get' . ucfirst($field['name'])});
+        }
+        return new Form($fieldCollection, $model);
     }
 
 }

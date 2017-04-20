@@ -28,38 +28,38 @@ class Field{
     private $maxlength;
     private $minlength;
 
-    public function __construct($type = 'text', $name = 'input', $value = null, $placeholder = null, $required = false, $id = null, $class = null, $data = null, $focus = null, $childs = [], $label = null)
+    public function __construct()
     {
-        $this->type = $type;
-        $this->name = $name;
-        $this->value = $value;
-        $this->placeholder = $placeholder;
-        $this->required = $required;
-        $this->id = $id;
-        $this->class = $class;
-        $this->data = $data;
-        $this->childs = $childs;
-        $this->focus = $focus;
-        $this->label = $label;
+        $this->type = 'text';
+        $this->name = 'field';
+        $this->value = null;
+        $this->placeholder = null;
+        $this->required = false;
+        $this->id = null;
+        $this->class = null;
+        $this->data = null;
+        $this->childs = [];
+        $this->focus = false;
+        $this->label = null;
     }
 
     public function type($type){
-        $this->type = $type;
+        $this->type = (string) $type;
         return $this;
     }
 
     public function name($name){
-        $this->name = $name;
+        $this->name = (string) $name;
         return $this;
     }
 
     public function value($value){
-        $this->value = $value;
+        $this->value = (string) $value;
         return $this;
     }
 
     public function placeholder($placeholder){
-        $this->placeholder = $placeholder;
+        $this->placeholder = (string) $placeholder;
         return $this;
     }
 
@@ -69,12 +69,12 @@ class Field{
     }
 
     public function id($id){
-        $this->id = $id;
+        $this->id = (string) $id;
         return $this;
     }
 
     public function class($class){
-        $this->class = $class;
+        $this->class = (string) $class;
         return $this;
     }
 
@@ -101,28 +101,28 @@ class Field{
     }
 
     public function maxlength($length){
-        $this->maxlength = $length;
+        $this->maxlength = (int) $length;
     }
 
     public function minlength($length){
-        $this->minlength = $length;
+        $this->minlength = (int) $length;
     }
 
     public function create(){
 
         $out = '';
 
-        $this->id = $this->id ?? $this->name;
-
-        if($this->type !== 'hidden' && $this->type !== 'submit'){
-            if($this->label){
-                $out .= "<label for=\"{$this->id}\">{$this->name}</label><br/>";
-            }
+        if($this->type !== 'hidden' && $this->type !== 'submit' && $this->label){
+            $this->id = $this->id ?? $this->name;
+            $out .= "<label for=\"{$this->id}\">{$this->name}</label><br/>";
         }
 
         switch ($this->type) {
             case 'select':
                 $out .= $this->buildSelect();
+                break;
+            case 'textarea':
+                $out .= $this->buildTextarea();
                 break;
             default:
                 $out .= $this->buildInput();
@@ -183,6 +183,24 @@ class Field{
             $out .= " selected";
         $out .= ">{$opts['content']}</option>";
         return $out;
+    }
+
+    private function buildTextarea(){
+        $out = "<textarea";
+        if($this->name)
+            $out .= " name=\"{$this->name}\"";
+        if($this->id)
+            $out .= " id=\"{$this->id}\"";
+        if($this->class)
+            $out .= " class=\"{$this->class}\"";
+        if($this->required)
+            $out .= " required";
+        if($this->maxlength)
+            $out .= "cols=\"{$this->maxlength}\" rows=\"{$this->maxlength}\"";
+        $out .= "/>";
+        if($this->value)
+            $out .= $this->value;
+        $out .= "</textarea>";
     }
 
     public function validateEntry($entry){

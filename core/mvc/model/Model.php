@@ -2,22 +2,31 @@
 namespace Core\Mvc\Model;
 
 use Core\Cache;
+use Core\Database\Orm\Schema\Schema;
 use Core\Helper;
+use Core\Mvc\Repository\Repository;
 
 abstract class Model{
 
-    public $id;
-    public $_modified = [];
-    public $repository;
+    private $_modified = [];
+    protected $id;
+    protected $schema;
 
-    public function __construct($init_args = [])
+    public function __construct()
     {
-        $this->repository = Cache::get(Helper::getRepositoryNamespaceFromInstance($this), true);
-        if(count($init_args)){
-            $this->parseArgs($init_args);
+        //TODO: replace locator to dependancy injections
+        try{
+            $this->schema = Schema::get($this)->schema();
+        }
+        catch (\Exception $e){
+            $this->schema = null;
         }
     }
 
+    /**
+     * @param $args
+     * @Deprecated
+     */
     private function parseArgs($args){
         $props = null;
         if((is_object($args[0]) || (is_array($args[0]) && Helper::isAssociative($args[0]))) && count($args) === 1){
@@ -84,14 +93,25 @@ abstract class Model{
         }
     }
 
-    public function setter($k,$v){
-        if($v !== $this->$k){
-            $this->_modified[$k] = $v;
+    protected function setter($k, $v){
+        if(!in_array($k,array_keys(get_class_vars(get_called_class()))))
+            return;
+
+        if($v !== $this->{$k}){
+            $this->_modified[] = $k;
         }
     }
 
-    public function getRepository(){
-        return $this->repository;
+    public function getId(){
+        return $this->id;
+    }
+
+    public function getSchema(): array{
+        return $this->schema;
+    }
+
+    public function getModifications(): array{
+        return $this->_modified;
     }
 
 }

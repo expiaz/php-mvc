@@ -12,6 +12,7 @@ define('CONTROLLER', APP . 'controller' . DS);
 define('MODEL', APP . 'model' . DS);
 define('ENTITY', MODEL);
 define('REPOSITORY', APP . 'repository' . DS);
+define('SCHEMA', MODEL . 'schema' . DS);
 define('VIEW', APP . 'view' . DS);
 define('LAYOUT', VIEW . 'layout' . DS);
 

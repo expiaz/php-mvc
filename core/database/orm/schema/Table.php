@@ -2,7 +2,7 @@
 
 namespace Core\Database\Orm\Schema;
 
-class Table implements Describable {
+class Table implements Statementizable, Schematizable {
 
     private $fields;
     private $prefix;
@@ -38,30 +38,30 @@ class Table implements Describable {
         return $field;
     }
 
-    public function primaryKey($name){
+    public function primaryKey(Field $field){
         if(is_null($this->pkConstraint)){
-            $this->pkConstraint = new InlineConstraint(InlineConstraint::PRIMARY_KEY, $name);
+            $this->pkConstraint = new InlineConstraint(InlineConstraint::PRIMARY_KEY, $field->getName());
         }
         else{
-            $this->pkConstraint->addField($name);
+            $this->pkConstraint->addField($field->getName());
         }
     }
 
-    public function indexKey($name){
+    public function indexKey(Field $field){
         if(is_null($this->keyConstraint)){
-            $this->keyConstraint = new InlineConstraint(InlineConstraint::INDEX, $name);
+            $this->keyConstraint = new InlineConstraint(InlineConstraint::INDEX, $field->getName());
         }
         else{
-            $this->keyConstraint->addField($name);
+            $this->keyConstraint->addField($field->getName());
         }
     }
 
-    public function uniqueKey($name){
+    public function uniqueKey(Field $field){
         if(is_null($this->uniqueConstraint)){
-            $this->uniqueConstraint = new InlineConstraint(InlineConstraint::UNIQUE, $name);
+            $this->uniqueConstraint = new InlineConstraint(InlineConstraint::UNIQUE, $field->getName());
         }
         else{
-            $this->uniqueConstraint->addField($name);
+            $this->uniqueConstraint->addField($field->getName());
         }
     }
 
@@ -69,25 +69,44 @@ class Table implements Describable {
         $this->constraints[] = $constraint;
     }
 
-    public function describe(): array
+
+    /**
+     * @Override
+     * @return array
+     */
+    public function statement()
     {
-        $transaction = [];
         $fieldsDescribed = array_map(function(Field $e){
-            return $e->describe();
+            return $e->statement();
         }, $this->fields);
 
-        if($this->pkConstraint instanceof InlineConstraint) $fieldsDescribed[] = $this->pkConstraint->describe();
-        if($this->keyConstraint instanceof InlineConstraint) $fieldsDescribed[] = $this->keyConstraint->describe();
-        if($this->uniqueConstraint instanceof InlineConstraint) $fieldsDescribed[] = $this->uniqueConstraint->describe();
+        if($this->pkConstraint instanceof InlineConstraint) $fieldsDescribed[] = $this->pkConstraint->statement();
+        if($this->keyConstraint instanceof InlineConstraint) $fieldsDescribed[] = $this->keyConstraint->statement();
+        if($this->uniqueConstraint instanceof InlineConstraint) $fieldsDescribed[] = $this->uniqueConstraint->statement();
 
         $fieldsSql = "\t" . implode(",\n\t",$fieldsDescribed);
         $tableSql = "CREATE TABLE {$this->name} (\n {$fieldsSql} \n) ENGINE=InnoDB;";
-        $transaction[] = $tableSql;
 
-        foreach ($this->constraints as $constraint)
-            $transaction = array_merge($transaction, $constraint->describe());
+        $transaction = array_merge([$tableSql], array_map(function(Constraint $c){
+            return $c->statement();
+        }, $this->constraints));
 
         return $transaction;
+    }
+
+    /**
+     * @Override
+     * @return array
+     */
+    public function schema(): array
+    {
+        return [
+            "table" => $this->name,
+            "prefix" => $this->prefix ?: NULL,
+            "fields" => array_map(function(Field $e){
+                return $e->schema();
+            },$this->fields)
+        ];
     }
 
 }

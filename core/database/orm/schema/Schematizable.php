@@ -4,6 +4,6 @@ namespace Core\Database\Orm\Schema;
 
 interface Schematizable{
 
-    function schematize(): array;
+    function schema(): array;
 
 }

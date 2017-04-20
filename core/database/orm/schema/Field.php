@@ -2,7 +2,7 @@
 
 namespace Core\Database\Orm\Schema;
 
-class Field implements Describable {
+class Field implements Statementizable, Schematizable {
 
     private $table;
     private $name;
@@ -13,9 +13,7 @@ class Field implements Describable {
     private $autoIncrement;
 
     private $constraints;
-    private $pkConstraint = null;
-    private $keyConstraint = null;
-    private $uniqueConstraint = null;
+    private $inlineConstraints;
 
     public function __construct(Table $table, $name)
     {
@@ -24,6 +22,7 @@ class Field implements Describable {
         $this->autoIncrement = false;
         $this->nullable = false;
         $this->constraints = [];
+        $this->inlineConstraints = [];
     }
 
     public function getName(){
@@ -31,7 +30,19 @@ class Field implements Describable {
     }
 
     public function type($type){
-        $this->type = $type;
+        switch(strtolower($type)){
+            case 'image':
+            case 'path':
+            case 'url':
+                $type = 'TEXT';
+                $this->length(500);
+                break;
+            case 'boolean':
+                $type = 'TINYINT';
+                $this->length(1);
+                break;
+        }
+        $this->type = strtoupper($type);
         return $this;
     }
 
@@ -79,18 +90,26 @@ class Field implements Describable {
     }
 
     public function primaryKey(){
-        $this->table->primaryKey($this->name);
+        if(in_array(Constraint::PRIMARY_KEY, $this->inlineConstraints)) return $this;
+        $this->table->primaryKey($this);
+        $this->inlineConstraints[] = Constraint::PRIMARY_KEY;
         $this->nullable = false;
         return $this;
     }
 
     public function index(){
-        $this->table->indexKey($this->name);
+        if(in_array(Constraint::INDEX, $this->inlineConstraints)) return $this;
+        $this->table->indexKey($this);
+        $this->inlineConstraints[] = Constraint::INDEX;
+        $this->nullable = false;
         return $this;
     }
 
     public function unique(){
-        $this->table->uniqueKey($this->name);
+        if(in_array(Constraint::UNIQUE, $this->inlineConstraints)) return $this;
+        $this->table->uniqueKey($this);
+        $this->inlineConstraints[] = Constraint::UNIQUE;
+        $this->nullable = false;
         return $this;
     }
 
@@ -98,15 +117,17 @@ class Field implements Describable {
         $constraint = new Constraint($this->table, $this, "CHECK_{$this->table->getName()}({$this->name})");
         $constraint->check($check);
         $this->table->addConstraint($constraint);
+        $this->constraints[] = $constraint;
         return $this;
     }
 
 
 
-    public function manyToMany($table, $field){
+    public function manyToMany($table, $field, $type, $length = null){
         $constraint = new Constraint($this->table, $this, "FK_{$this->table->getName()}({$this->name})_{$table}({$field})_MANYTOMANY");
-        $constraint->manyToMany($table, $field);
+        $constraint->manyToMany($table, $field, $type, $length);
         $this->table->addConstraint($constraint);
+        $this->constraints[] = $constraint;
         return $this;
     }
 
@@ -114,6 +135,7 @@ class Field implements Describable {
         $constraint = new Constraint($this->table, $this, "FK_{$this->table->getName()}({$this->name})_{$table}({$field})_MANYTOONE");
         $constraint->manyToOne($table, $field);
         $this->table->addConstraint($constraint);
+        $this->constraints[] = $constraint;
         return $this;
     }
 
@@ -122,12 +144,13 @@ class Field implements Describable {
         $constraint->oneToOne($table, $field);
         $this->table->addConstraint($constraint);
         $this->table->uniqueKey($this->name);
+        $this->constraints[] = $constraint;
         return $this;
     }
 
 
 
-    public function describe()
+    public function statement()
     {
         $props = [];
         $props[] = $this->name;
@@ -140,6 +163,34 @@ class Field implements Describable {
         }));
 
         return $fieldDecalaration;
+    }
+
+    public function &schema() :array
+    {
+        $schema = [];
+        $schema['name'] = $this->name;
+        $schema['type'] = $this->type;
+        $schema['length'] = $this->length;
+        $schema['null'] = $this->nullable;
+        $schema['default'] = $this->default ?: $this->nullable ? 'NULL' : 'NOT NULL';
+        $schema['auto'] = $this->autoIncrement;
+        $schema['constraints'] = [];
+        foreach ($this->constraints as $c)
+            $schema['constraints'][] = $c->schema();
+        foreach ($this->inlineConstraints as $ic)
+            $schema['constraints'][] = ['type' => $ic];
+
+       /* $schema['constraints'] = array_map(
+            function(Constraint $e){
+                return $e->schema();
+            },
+            $this->constraints
+        );
+        $schema['constraints'] = array_merge($schema['constraints'], array_map(function($e){
+            return ['type' => $e];
+        }, $this->inlineConstraints));*/
+
+        return $schema;
     }
 
 }

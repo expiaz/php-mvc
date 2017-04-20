@@ -24,7 +24,7 @@ abstract class Database{
         static::$_pdo = null;
     }
 
-    public static function getInstance(){
+    public static function getInstance(): PDO{
         if(static::$_pdo === null){
             static::connect();
         }

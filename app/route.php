@@ -2,6 +2,6 @@
 
 use Core\Http\Router;
 
-Router::on('/', 'index@index');
+Router::on('/dashboard/:id/:a', 'index@index');
 
 

@@ -2,11 +2,11 @@
 
 namespace Core\Database\Orm\Schema;
 
-class InlineConstraint implements Describable {
+class InlineConstraint implements Statementizable, Schematizable {
 
     const PRIMARY_KEY = 1;
-    const INDEX = 3;
-    const UNIQUE = 4;
+    const INDEX = 6;
+    const UNIQUE = 7;
 
     private $type;
     private $name;
@@ -23,7 +23,7 @@ class InlineConstraint implements Describable {
         $this->fields[] = $field;
     }
 
-    public function describe()
+    public function statement()
     {
         $fields = '`' . implode('`, `', $this->fields) . '`';
         $typeName = implode('_', $this->fields);;
@@ -38,6 +38,14 @@ class InlineConstraint implements Describable {
                 return "UNIQUE KEY `UNIQUE_{$typeName}` ({$fields})";
                 break;
         }
+    }
+
+    public function schema():array
+    {
+        return [
+            "type" => $this->type,
+            "fields" => $this->fields
+        ];
     }
 
 }

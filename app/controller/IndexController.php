@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use Core\Database\Orm\ORM;
+use Core\Database\Orm\Schema\Schema;
 use Core\Database\Orm\Schema\Table;
+use Core\Form\FormBuilder;
+use Core\Http\Request;
 use Core\Mvc\Controller\Controller;
 use Core\Mvc\View\View;
 
@@ -12,22 +16,14 @@ class IndexController extends Controller{
         parent::__construct();
     }
 
-    public function index(){
+    public function index(Request $r, ... $p){
 
-        $table = new Table('index');
-        $table->prefix('keyroes');
-        $table->addField('id')
-            ->autoIncrement();
-        $table->addField('acteur')
-            ->type('varchar')
-            ->length('255')
-            ->oneToOne('acteur','id');
-
-        $t =  implode("\n\n",$table->describe());
+        $form = FormBuilder::build($this->getRepository()->getModel());
 
         return View::render('index', [
-            'content' => $t
+            'content' => $form->build()
         ]);
+
     }
 
 }

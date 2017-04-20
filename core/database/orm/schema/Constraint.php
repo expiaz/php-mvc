@@ -4,7 +4,7 @@ namespace Core\Database\Orm\Schema;
 
 use Core\Database\Database;
 
-class Constraint implements Describable {
+class Constraint implements Statementizable, Schematizable {
 
     private $table;
     private $field;
@@ -21,7 +21,7 @@ class Constraint implements Describable {
     const CHECK = 5;
     const INDEX = 6;
     const UNIQUE = 7;
-	const AI = 8;
+    const AI = 8;
 
     private $name;
 
@@ -30,6 +30,14 @@ class Constraint implements Describable {
         $this->name = $name;
         $this->table = $table;
         $this->field = $field;
+    }
+
+    public function getType(){
+        return $this->type;
+    }
+
+    public function getName(){
+        return $this->name;
     }
 
     public function primaryKey(){
@@ -53,11 +61,10 @@ class Constraint implements Describable {
         return $this;
     }
 
-    public function manyToMany($table, $field){
+    public function manyToMany($table, $field, $type, $length = null){
         $this->referenceTable = $table;
         $this->referenceField = $field;
-        $query = Database::raw("DESCRIBE {$table} {$field};")[0];
-        $this->referenceFieldType = $query->Type;
+        $this->referenceFieldType = $length ? "{$type}({$length})" : $type;
         $this->type = static::MANY_TO_MANY;
         return $this;
     }
@@ -77,32 +84,10 @@ class Constraint implements Describable {
         $this->mathematicalConditionnal = $check;
         return $this;
     }
-	
-	public function autoIncrement(){
-		$this->type = static::AI;
-		return $this;
-	}
 
-    public function describe(): array
-    {
-        switch($this->type){
-            case static::PRIMARY_KEY:
-                return $this->describePrimaryKey();
-            case static::MANY_TO_MANY:
-                return $this->describeManyToMany();
-            case static::MANY_TO_ONE:
-                return $this->describeManyToOne();
-            case static::ONE_TO_ONE:
-                return $this->describeOneToOne();
-            case static::CHECK:
-                return $this->describeCheck();
-            case static::INDEX:
-                return $this->describeIndex();
-            case static::UNIQUE:
-                return $this->describeUnique();
-			case static::AI:
-				return $this->describeAI();
-        }
+    public function autoIncrement(){
+        $this->type = static::AI;
+        return $this;
     }
 
 
@@ -120,7 +105,7 @@ class Constraint implements Describable {
         $secondConstraint = "FK_{$tableName}({$secondField})_{$this->referenceTable}({$this->referenceField})";
 
         return array_merge($table->describe(), [
-			"ALTER TABLE {$tableName} ADD CONSTRAINT {$firstConstraint} FOREIGN KEY ({$firstField}) REFERENCES {$this->table->getName()}({$this->field->getName()}), ADD CONSTRAINT {$secondConstraint} FOREIGN KEY ({$secondField}) REFERENCES {$this->referenceTable}($this->referenceField);"
+            "ALTER TABLE {$tableName} ADD CONSTRAINT {$firstConstraint} FOREIGN KEY ({$firstField}) REFERENCES {$this->table->getName()}({$this->field->getName()}), ADD CONSTRAINT {$secondConstraint} FOREIGN KEY ({$secondField}) REFERENCES {$this->referenceTable}($this->referenceField);"
         ]);
     }
 
@@ -159,9 +144,46 @@ class Constraint implements Describable {
         $name = "PK_{$this->table}($this->field)";
         return ["CREATE UNIQUE INDEX {$name} ON `{$this->table}` (`{$this->field}`);"];
     }
-	
-	private function describeAI(){
-		return ["ALTER TABLE `{$this->table}` MODIFY `{$this->field}` INT(11) NOT NULL AUTO_INCREMENT;"];
-	}
+
+    private function describeAI(){
+        return ["ALTER TABLE `{$this->table}` MODIFY `{$this->field}` INT(11) NOT NULL AUTO_INCREMENT;"];
+    }
+
+
+    /**
+     * @Override
+     * @return array
+     */
+    public function statement()
+    {
+        switch($this->type){
+            case static::PRIMARY_KEY:
+                return $this->describePrimaryKey();
+            case static::MANY_TO_MANY:
+                return $this->describeManyToMany();
+            case static::MANY_TO_ONE:
+                return $this->describeManyToOne();
+            case static::ONE_TO_ONE:
+                return $this->describeOneToOne();
+            case static::CHECK:
+                return $this->describeCheck();
+            case static::INDEX:
+                return $this->describeIndex();
+            case static::UNIQUE:
+                return $this->describeUnique();
+            case static::AI:
+                return $this->describeAI();
+        }
+    }
+
+
+    public function schema(): array
+    {
+        return [
+            "type" => $this->type,
+            "table" => $this->referenceTable,
+            "field" => $this->referenceField
+        ];
+    }
 
 }
