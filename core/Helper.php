@@ -1,7 +1,7 @@
 <?php
 namespace Core;
 
-abstract class Helper{
+final class Helper{
 
     /**
      * return the class name without the class type
@@ -9,19 +9,19 @@ abstract class Helper{
      * @param $instance
      * @return string
      */
-    public static function getClassNameFromInstance($instance){
-        return static::getClassNameFromNamespace(get_class($instance));
+    public function getClassNameFromInstance($instance){
+        return $this->getClassNameFromNamespace(get_class($instance));
     }
 
-    public static function getClassNameFromNamespace($namespace){
+    public function getClassNameFromNamespace($namespace){
         $instanceClass = substr($namespace, strrpos($namespace, '\\') + 1);
-        $v =  static::normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
+        $v =  $this->normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
         return $v;
     }
 
-    public static function getClassNameFromFilePath($path){
+    public function getClassNameFromFilePath($path){
         $instanceClass =  substr($path,strrpos($path, DS) + 1);
-        return static::normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
+        return $this->normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
     }
 
 
@@ -31,12 +31,12 @@ abstract class Helper{
      * @param $instance
      * @return string
      */
-    public static function getTableNameFromInstance($instance){
-        return static::getTableNameFromNamespace(get_class($instance));
+    public function getTableNameFromInstance($instance){
+        return $this->getTableNameFromNamespace(get_class($instance));
     }
 
-    public static function getTableNameFromNamespace($namespace){
-        return strtolower(static::getClassNameFromNamespace($namespace));
+    public function getTableNameFromNamespace($namespace){
+        return strtolower( $this->getClassNameFromNamespace($namespace));
     }
 
 
@@ -46,11 +46,11 @@ abstract class Helper{
      * @param $instance
      * @return string
      */
-    public static function getClassTypeFromInstance($instance){
-        return static::getClassTypeFromNamespace(get_class($instance));
+    public function getClassTypeFromInstance($instance){
+        return $this->getClassTypeFromNamespace(get_class($instance));
     }
 
-    public static function getClassTypeFromNamespace($namespace){
+    public function getClassTypeFromNamespace($namespace){
         $namespace = rtrim($namespace, '\\');
         $pos = strrpos($namespace, '\\');
         if($pos && strlen($namespace) - 1 >= $pos)
@@ -77,7 +77,7 @@ abstract class Helper{
      * @param $instance
      * @return bool|string
      */
-    public static function getNamespaceFromInstance($instance){
+    public function getNamespaceFromInstance($instance){
         $instanceNs = get_class($instance);
         return substr($instanceNs, 0, strrpos($instanceNs, '\\'));
     }
@@ -87,7 +87,7 @@ abstract class Helper{
      * @param $name
      * @return string
      */
-    public static function normalizeName($name){
+    public function normalizeName($name){
         return ucfirst(strtolower($name));
     }
 
@@ -96,124 +96,124 @@ abstract class Helper{
      * @param array $a
      * @return bool
      */
-    public static function isAssociative(array $a){
+    public function isAssociative(array $a){
         return count(array_filter(array_keys($a), 'is_string')) > 0;
     }
 
 
 
-    public static function getModelNamespaceFromInstance($instance){
-        $name = static::getClassNameFromInstance($instance);
+    public function getModelNamespaceFromInstance($instance){
+        $name = $this->getClassNameFromInstance($instance);
         $model = "App\\Model\\{$name}Model";
         return $model;
     }
 
-    public static function getModelFilePathFromInstance($instance){
-        $name = static::getClassNameFromInstance($instance);
+    public function getModelFilePathFromInstance($instance){
+        $name = $this->getClassNameFromInstance($instance);
         $model = MODEL . "{$name}Model.php";
         return $model;
     }
     
 
-    public static function getControllerNamespaceFromInstance($instance){
-        $name = static::getClassNameFromInstance($instance);
+    public function getControllerNamespaceFromInstance($instance){
+        $name = $this->getClassNameFromInstance($instance);
         $model = "App\\Controller\\{$name}Controller";
         return $model;
     }
 
-    public static function getControllerFilePathFromInstance($instance){
-        $name = static::getClassNameFromInstance($instance);
+    public function getControllerFilePathFromInstance($instance){
+        $name = $this->getClassNameFromInstance($instance);
         $model = CONTROLLER . "{$name}Controller.php";
         return $model;
     }
     
 
-    public static function getRepositoryNamespaceFromInstance($instance){
-        $name = static::getClassNameFromInstance($instance);
+    public function getRepositoryNamespaceFromInstance($instance){
+        $name = $this->getClassNameFromInstance($instance);
         $model = "App\\Repository\\{$name}Repository";
         return $model;
     }
 
-    public static function getRepositoryFilePathFromInstance($instance){
-        $name = static::getClassNameFromInstance($instance);
+    public function getRepositoryFilePathFromInstance($instance){
+        $name = $this->getClassNameFromInstance($instance);
         $model = REPOSITORY . "{$name}Repository.php";
         return $model;
     }
     
     
 
-    public static function getModelNamespaceFromName($name){
-        $name = static::normalizeName($name);
+    public function getModelNamespaceFromName($name){
+        $name = $this->normalizeName($name);
         $model = "App\\Model\\{$name}Model";
         return $model;
     }
 
-    public static function getModelFilePathFromName($name){
-        $name = static::normalizeName($name);
+    public function getModelFilePathFromName($name){
+        $name = $this->normalizeName($name);
         $model = MODEL . "{$name}Model.php";
         return $model;
     }
     
 
-    public static function getControllerNamespaceFromName($name){
-        $name = static::normalizeName($name);
+    public function getControllerNamespaceFromName($name){
+        $name = $this->normalizeName($name);
         $model = "App\\Controller\\{$name}Controller";
         return $model;
     }
 
-    public static function getControllerFilePathFromName($name){
-        $name = static::normalizeName($name);
+    public function getControllerFilePathFromName($name){
+        $name = $this->normalizeName($name);
         $model = CONTROLLER . "{$name}Controller.php";
         return $model;
     }
     
 
-    public static function getRepositoryNamespaceFromName($name){
-        $name = static::normalizeName($name);
+    public function getRepositoryNamespaceFromName($name){
+        $name = $this->normalizeName($name);
         $model = "App\\Repository\\{$name}Repository";
         return $model;
     }
 
-    public static function getRepositoryFilePathFromName($name){
-        $name = static::normalizeName($name);
+    public function getRepositoryFilePathFromName($name){
+        $name = $this->normalizeName($name);
         $model = REPOSITORY . "{$name}Repository.php";
         return $model;
     }
 
 
-    public static function getSchemaNamespaceFromName($name){
-        $name = static::normalizeName($name);
+    public function getSchemaNamespaceFromName($name){
+        $name = $this->normalizeName($name);
         $schema = "App\\Model\\Schema\\{$name}Schema";
         return $schema;
     }
     
 
-    public static function isValidModelNamespace($namespace){
-        return static::isValidNamespace($namespace, 'Model');
+    public function isValidModelNamespace($namespace){
+        return $this->isValidNamespaceForClass($namespace, 'Model');
     }
 
-    public static function isValidControllerNamespace($namespace){
-        return static::isValidNamespaceForClass($namespace, 'Controller');
+    public function isValidControllerNamespace($namespace){
+        return $this->isValidNamespaceForClass($namespace, 'Controller');
     }
 
-    public static function isValidRepositoryNamespace($namespace){
-        return static::isValidNamespaceForClass($namespace, 'Repository');
+    public function isValidRepositoryNamespace($namespace){
+        return $this->isValidNamespaceForClass($namespace, 'Repository');
     }
 
-    public static function isValidSchemaNamespace($namespace){
-        return static::isValidNamespaceForClass($namespace, 'Schema');
+    public function isValidSchemaNamespace($namespace){
+        return $this->isValidNamespaceForClass($namespace, 'Schema');
     }
 
-    public static function isValidNamespaceForClass($namespace, $class){
-        return static::getClassTypeFromNamespace($namespace) === $class;
+    public function isValidNamespaceForClass($namespace, $class){
+        return $this->getClassTypeFromNamespace($namespace) === $class;
     }
 
-    public static function isValidNamespace($namespace){
+    public function isValidNamespace($namespace){
 
         $v =  preg_match("/^App[\\\](Model|Schema|Repository|Controller)[\\\]\w+$/",$namespace);
-        //echo "Helper::isValidNamespace {$namespace}" . ($v ? " y" : " n") . "\n<br>";
+        //echo "Helper $this->isValidNamespace {$namespace}" . ($v ? " y" : " n") . "\n<br>";
         return $v;
-        return static::isValidRepositoryNamespace($namespace) || static::isValidControllerNamespace($namespace) || static::isValidModelNamespace($namespace) || static::isValidSchemaNamespace($namespace);
+        return $this->isValidRepositoryNamespace($namespace) || $this->isValidControllerNamespace($namespace) || $this->isValidModelNamespace($namespace) || $this->isValidSchemaNamespace($namespace);
     }
 
 }

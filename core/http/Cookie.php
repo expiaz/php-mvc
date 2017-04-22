@@ -2,37 +2,77 @@
 
 namespace Core\Http;
 
-abstract class Cookie{
+use ArrayAccess;
 
-    public static function set($k, $v, $expire = null){
-        /*
-        if(isset($_COOKIE[$k])){
-            echo "{$k} exists => {$_COOKIE[$k]}, setting it at {$v}<br/>";
-            $_COOKIE[$k] = $v;
-            return;
-        }
-        */
+final class Cookie implements ArrayAccess {
+
+    public function set(string $k, $v, $expire = null){
         if(is_null($expire))
             $expire = time() + 3600;
-        setcookie($k,$v,$expire);
+        setcookie((string) $k,(string) $v,$expire);
     }
 
-    public static function get($k){
+    public function get(string $k){
         return $_COOKIE[$k] ?? null;
     }
 
-    public static function exists($k){
+    public function exists(string $k){
         return isset($_COOKIE[$k]);
     }
 
-    public static function delete($k){
-        if(isset($_COOKIE[$k])){
+    public function delete(string $k){
+        if($this->exists($k)){
             unset($_COOKIE[$k]);
         }
     }
 
-    public static function flush(){
+    public  function flush(){
         unset($_COOKIE);
+    }
+
+    public function __set($key, $value){
+        $this->set($key, $value);
+    }
+
+    public function __get($key = null){
+        return $this->get($key);
+    }
+
+    public function __call($method, $param = []){
+        if(preg_match('/^(get|set)$/',substr($method, 0, 3))){
+            $m = lcfirst(substr($method, 3));
+            switch (substr($method, 0, 3)){
+                case 'get':
+                    return $this->get($m);
+                case 'set':
+                    if(count($param))
+                        return $this->set($m, $param[0]);
+                    return;
+            }
+        }
+        if(count($param)){
+            return $this->set($method, $param[0]);
+        }
+        return $this->get($method);
+    }
+
+    public function offsetSet($offset, $value) {
+        if (is_null($offset)) {
+            return;
+        }
+        $this->set($offset, $value);
+    }
+
+    public function offsetExists($offset) {
+        return $this->exists($offset);
+    }
+
+    public function offsetUnset($offset) {
+        $this->delete($offset);
+    }
+
+    public function offsetGet($offset) {
+        return $this->get($offset);
     }
 
 }

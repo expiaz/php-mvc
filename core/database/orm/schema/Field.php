@@ -11,6 +11,7 @@ class Field implements Statementizable, Schematizable {
     private $default;
     private $nullable;
     private $autoIncrement;
+    private $formType;
 
     private $constraints;
     private $inlineConstraints;
@@ -31,7 +32,9 @@ class Field implements Statementizable, Schematizable {
 
     public function type($type){
         switch(strtolower($type)){
+            case 'file':
             case 'image':
+                $formType = 'FILE';
             case 'path':
             case 'url':
                 $type = 'TEXT';
@@ -39,9 +42,11 @@ class Field implements Statementizable, Schematizable {
                 break;
             case 'boolean':
                 $type = 'TINYINT';
+                $formType = 'BOOLEAN';
                 $this->length(1);
                 break;
         }
+        $this->formType = $formType ?? $type;
         $this->type = strtoupper($type);
         return $this;
     }
@@ -170,6 +175,7 @@ class Field implements Statementizable, Schematizable {
         $schema = [];
         $schema['name'] = $this->name;
         $schema['type'] = $this->type;
+        $schema['formtype'] = $this->formType;
         $schema['length'] = $this->length;
         $schema['null'] = $this->nullable;
         $schema['default'] = $this->default ?: $this->nullable ? 'NULL' : 'NOT NULL';

@@ -12,9 +12,15 @@ class Bootstrapper{
 
     public function loadStatics(){
         require_once CORE . 'Autoloader.php';
+
+        /*
         require_once CORE . 'Helper.php';
         require_once CORE . 'Config.php';
+        */
+
         require_once CORE_SHARED . 'webConstants.php';
+
+        /*
         require_once CORE . 'Cache.php';
         require_once CORE_HTTP . 'Cookie.php';
         require_once CORE_HTTP . 'Session.php';
@@ -23,6 +29,10 @@ class Bootstrapper{
         require_once CORE_DATABASE . 'Database.php';
         require_once CORE_ORM . 'ORM.php';
         require_once CORE_FORM . 'FormBuilder.php';
+        */
+
+        require_once CORE_SHARED . 'helpers.php';
+
         require_once APP . 'route.php';
     }
 

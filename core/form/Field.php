@@ -124,6 +124,9 @@ class Field{
             case 'textarea':
                 $out .= $this->buildTextarea();
                 break;
+            case 'boolean':
+                $out .= $this->buildBoolean();
+                break;
             default:
                 $out .= $this->buildInput();
                 break;
@@ -201,6 +204,27 @@ class Field{
         if($this->value)
             $out .= $this->value;
         $out .= "</textarea>";
+    }
+
+    private function buildBoolean(){
+        $false = "<input type=\"radio\" value=\"0\" name=\"{$this->name}\" ";
+        $true = "<input type=\"radio\" value=\"1\" name=\"{$this->name}\" ";
+        if($this->id) {
+            $false .= " id=\"{$this->id}_false\"";
+            $true .= " id=\"{$this->id}_true\"";
+        }
+        if($this->class){
+            $false .= " class=\"{$this->class}\"";
+            $true .= " class=\"{$this->class}\"";
+        }
+        if($this->required){
+            $false .= " required";
+            $true .= " required";
+        }
+
+        $false .= "/> No";
+        $true .= " checked/> Yes";
+        return $true . $false;
     }
 
     public function validateEntry($entry){

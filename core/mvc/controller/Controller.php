@@ -7,11 +7,14 @@ use Core\Mvc\Repository\Repository;
 
 abstract class Controller{
 
-    private $repository;
+    protected $repository;
+    protected $container;
 
-    public function __construct()
+    public function __construct(Container $container, Repository $repository)
     {
-        $this->repository = Cache::get(Helper::getRepositoryNamespaceFromInstance($this), true);
+        //$this->repository = Cache::get(Helper::getRepositoryNamespaceFromInstance($this), true);
+        $this->container = $container;
+        $this->repository = $repository;
     }
 
     public function getRepository($name = null): Repository{

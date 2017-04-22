@@ -36,6 +36,7 @@ class Dispatcher{
     }
 
     private function dispatch(){
+
         $loaders = Router::apply($this->_url);
         switch($loaders['result']){
             case 'CLOSURE':

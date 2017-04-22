@@ -12,54 +12,14 @@ abstract class Model{
     protected $id;
     protected $schema;
 
-    public function __construct()
+    public function __construct(Schema $schema)
     {
-        //TODO: replace locator to dependancy injections
+        //TODO: replace locator to dependency injections
         try{
             $this->schema = Schema::get($this)->schema();
         }
         catch (\Exception $e){
             $this->schema = null;
-        }
-    }
-
-    /**
-     * @param $args
-     * @Deprecated
-     */
-    private function parseArgs($args){
-        $props = null;
-        if((is_object($args[0]) || (is_array($args[0]) && Helper::isAssociative($args[0]))) && count($args) === 1){
-            //we assume that every property is passed throught this object
-            $props = is_array($args[0]) ? $args[0] : (array) $args[0];
-        }
-        else{
-            if(is_array($args[0]))
-                $args = $args[0];
-
-            $props = get_class_vars(
-                get_class($this)
-            );
-            $i = 0;
-            foreach ($props as $p => $v) {
-                $props[$p] = $args[$i] ?? null;
-                $i++;
-            }
-        }
-
-        if(DEV){
-            echo '[Model::create] ';
-            echo '<br>props : ';
-            print_r($props);
-            echo '<br>values : ';
-            print_r($args);
-        }
-
-        foreach ($props as $p => $v){
-            if(!is_null($v) && $p{0} !== '_'){
-                $func = 'set' . ucfirst(strtolower($p));
-                $this->$func($v);
-            }
         }
     }
 
@@ -94,8 +54,8 @@ abstract class Model{
     }
 
     protected function setter($k, $v){
-        if(!in_array($k,array_keys(get_class_vars(get_called_class()))))
-            return;
+        /*if(!in_array($k,array_keys(get_class_vars(get_called_class()))))
+            return;*/
 
         if($v !== $this->{$k}){
             $this->_modified[] = $k;

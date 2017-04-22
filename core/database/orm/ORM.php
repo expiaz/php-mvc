@@ -4,102 +4,26 @@ namespace Core\Database\Orm;
 
 use Core\Database\Database;
 use Core\Database\Orm\Schema\Schema;
-use Core\Exception\FileNotFoundException;
-use Core\Helper;
 
 final class ORM{
 
     private $schema;
-    private $statement;
-    private $table;
+    private $pdo;
 
-    public static function create($entity = null){
-        if(! is_null($entity)){
-            if(is_object($entity)){
-                $instance = Helper::getClassNameFromInstance($entity);
-            }
-            else if(is_array($entity)){
-                $ret = true;
-                foreach ($entity as $e){
-                    $ret = $ret && static::create($e);
-                }
-                return $ret;
-            }
-            else if(is_string($entity)){
-                $instance = new static($entity);
-            }
-            else{
-                $instance = "index";
-            }
-            return $instance->_create();
-        }
-        $ret = true;
-        foreach (glob(\SCHEMA . "*Schema.php") as $filename) {
-            $name = Helper::getClassNameFromFilePath($filename);
-            $s = new static($name);
-            $ret = $ret && $s->_create();
-        }
-        return $ret;
-    }
-
-    public static function schema($entity): array{
-
-        if(! is_null($entity)){
-            if(is_object($entity)){
-                $instance =  Helper::getClassNameFromInstance($entity);
-            }
-            else if(is_array($entity)){
-                $ret = [];
-                foreach ($entity as $e){
-                    $ret[] = static::schema($e);
-                }
-                return $ret;
-            }
-            else if(is_string($entity)){
-                $instance = new static($entity);
-            }
-            else{
-                $instance = "index";
-            }
-            return $instance->_schema();
-        }
-        $ret = [];
-        foreach (glob(\SCHEMA . "*Schema.php") as $filename) {
-            $name = Helper::getClassNameFromFilePath($filename);
-            $s = new static($name);
-            $ret = $ret[] = $s->_schema();
-        }
-        return $ret;
-    }
-
-
-    private function __construct($table)
+    public function __construct(Database $pdo, Schema $schema)
     {
-        try{
-            $schema = Helper::getSchemaNamespaceFromName($table);
-            new $schema();
-            $this->table = Schema::getTable($table);
-            $this->schema = $this->table->schema();
-            $this->description = $this->table->statement();
-        }
-        catch(FileNotFoundException $e){
-            $this->schema = [];
-            $this->description = "";
-        }
+        $this->pdo = $pdo->getConnection();
+        $this->schema = $schema;
     }
 
-
-
-
-
-    private function _create(){
-        $pdo = Database::getInstance();
-        $query = $pdo->prepare($this->statement);
-        return $query->execute([]) ? true : false;
+    public function create($class){
+        $sql = $this->schema->get($class)->statement();
+        return $this->pdo->query($sql) ? true : false;
     }
 
-    private function _schema(){
-        return $this->schema;
+    public function drop($class){
+        $sql = "DROP TABLE {$this->schema->get($class)->schema()['table']};";
+        return $this->pdo->query($sql) ? true : false;
     }
 
 }

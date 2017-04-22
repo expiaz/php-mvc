@@ -11,13 +11,15 @@ class IndexSchema{
 
         $table = new Table('index');
 
-        $table->addField('id')
-            ->type('int')
+        $table->field('id')
             ->autoIncrement();
 
-        $table->addField('name')
-            ->type('varchar')
-            ->length(200);
+        $table->field('affiche')
+            ->type('file')
+             ->nullable();
+
+        $table->field('mailing')
+            ->type('boolean');
 
         return $table;
     }

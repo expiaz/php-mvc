@@ -32,7 +32,7 @@ class Table implements Statementizable, Schematizable {
         return $this->prefix;
     }
 
-    public function addField($name){
+    public function field($name){
         $field = new Field($this, $this->prefix ? $this->prefix.'_'.$name : $name);
         $this->fields[] = $field;
         return $field;

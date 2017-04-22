@@ -29,13 +29,16 @@ class FilmSchema{
 
         $table = new Table('film');
 
-        $table->addField('id')
+        $table->field('id')
             ->type('int')
             ->primaryKey();
 
-        $table->addField('name')
-            ->type('varchar')
-            ->length(200);
+        $table->field('affiche')
+            ->type('film')
+            ->nullable();
+
+        $table->field('mailing')
+            ->type('boolean');
 
         return $table;
     }

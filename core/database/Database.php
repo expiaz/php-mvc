@@ -3,36 +3,38 @@
 namespace Core\Database;
 
 
-use Core\Config, PDO, PDOException;
+use PDO, PDOException;
 
 
-abstract class Database{
+final class Database{
 
-    private static $_pdo = null;
+    private $pdo;
 
-    public static function connect(){
-        if(static::$_pdo === null){
-            try {
-                static::$_pdo = new PDO(Config::getDSN(), Config::getUser(), Config::getPwd(), Config::getOptions());
-            } catch (PDOException $e) {
-                echo '[Database] Connexion échouée : ' . $e->getMessage();
-            }
+    public function __construct($dsn, $user, $pwd, $opts)
+    {
+        try {
+            $this->pdo = new PDO($dsn, $user, $pwd, $opts);
+        } catch (PDOException $e) {
+            echo '[Database] Connexion échouée : ' . $e->getMessage();
+            exit(1);
         }
     }
 
-    public static function close(){
-        static::$_pdo = null;
+    public function __destruct()
+    {
+        $this->close();
     }
 
-    public static function getInstance(): PDO{
-        if(static::$_pdo === null){
-            static::connect();
-        }
-        return static::$_pdo;
+    public function getConnection(): PDO{
+        return $this->pdo;
     }
 
-    public static function raw($sql = 'SELECT NOW();',$param = []){
-        $query = static::$_pdo->prepare($sql);
+    public function close(){
+        $this->pdo = null;
+    }
+
+    public function raw($sql = 'SELECT NOW();', $param = []){
+        $query = $this->pdo->prepare($sql);
         $query->execute($param);
         return $query->fetchAll(PDO::FETCH_OBJ);
     }

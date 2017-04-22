@@ -2,59 +2,112 @@
 
 namespace Core\Http;
 
-abstract class Session{
+use ArrayAccess;
 
-    private static $_on = false;
+final class Session implements ArrayAccess {
 
-    public static function activate(){
-        if(static::$_on === true)
+    private $on;
+
+    public function __construct()
+    {
+        $this->on = false;
+    }
+
+    public function activate(){
+        if($this->on === true)
             return;
 
-        static::$_on = true;
+        $this->on = true;
         session_start();
     }
 
-    public static function destroy(){
-        if(static::$_on === false)
+    public function destroy(){
+        if($this->on === false)
             return;
 
-        static::$_on = false;
+        $this->on = false;
         session_destroy();
     }
 
-    public static function set($k,$v){
-        if(static::$_on === false)
+    public function set($k,$v){
+        if($this->on === false)
             return;
 
         $_SESSION[$k] = $v;
     }
 
-    public static function get($k){
-        if(static::$_on === false)
+    public function get($k){
+        if($this->on === false)
             return;
 
-        return $_SESSION[$k] ?? null;
+        return $this->exists($k) ? $_SESSION[$k] : null;
     }
 
-    public static function exists($k){
+    public function exists($k){
         return isset($_SESSION[$k]);
     }
 
-    public static function delete($k){
-        if(static::$_on === false)
+    public function delete($k){
+        if($this->on === false)
             return;
 
-        if(isset($_SESSION[$k])){
+        if($this->exists($k)){
             unset($_SESSION[$k]);
         }
     }
 
-    public static function flush(){
-        if(static::$_on === false)
+    public function flush(){
+        if($this->on === false)
             return;
 
-        static::destroy();
-        static::activate();
+        $this->destroy();
+        $this->activate();
+    }
+
+
+    public function __set($key, $value){
+        $this->set($key, $value);
+    }
+
+    public function __get($key = null){
+        return $this->get($key);
+    }
+
+    public function __call($method, $param = []){
+        if(preg_match('/^(get|set)$/',substr($method, 0, 3))){
+            $m = lcfirst(substr($method, 3));
+            switch (substr($method, 0, 3)){
+                case 'get':
+                    return $this->get($m);
+                case 'set':
+                    if(count($param))
+                        return $this->set($m, $param[0]);
+                    return;
+            }
+        }
+        if(count($param)){
+            return $this->set($method, $param[0]);
+        }
+        return $this->get($method);
+    }
+
+    public function offsetSet($offset, $value) {
+        if (is_null($offset)) {
+            return;
+        }
+        $this->set($offset, $value);
+    }
+
+    public function offsetExists($offset) {
+        return $this->exists($offset);
+    }
+
+    public function offsetUnset($offset) {
+        $this->delete($offset);
+    }
+
+    public function offsetGet($offset) {
+        return $this->get($offset);
     }
 
 }

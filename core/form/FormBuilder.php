@@ -7,20 +7,26 @@ use Core\Database\Database;
 use Core\Database\Orm\Schema\Constraint;
 use Core\Mvc\Model\Model;
 
-abstract class FormBuilder{
+final class FormBuilder{
 
-    public static function &toFormSchema(&$baseSchema){
+    public function &toFormSchema(&$baseSchema){
         $fields = [];
         foreach ($baseSchema['fields'] as $field){
             $description = [];
 
             $description['name'] = $field['name'];
 
-            if(preg_match('#char|text#i',$field['type'])){
+            if(preg_match('#char|text#i',$field['formtype'])){
                 $description['type'] = 'text';
             }
-            elseif(preg_match('#date|time#i',$field['type'])){
+            elseif(preg_match('#date|time#i',$field['formtype'])){
                 $description['type'] = 'date';
+            }
+            elseif(preg_match('#file#i',$field['formtype'])){
+                $description['type'] = 'file';
+            }
+            elseif(preg_match('#boolean#i',$field['formtype'])){
+                $description['type'] = 'boolean';
             }
             else{
                 $description['type'] = 'number';
@@ -62,10 +68,12 @@ abstract class FormBuilder{
                     case Constraint::PRIMARY_KEY:
                         if($field['auto']){
                             $description['type'] = 'hidden';
-                            if($description['value'])
+                            if(! is_null($description['value'])){
                                 $description['required'] = true;
-                            else
+                            }
+                            else{
                                 $description['required'] = false;
+                            }
                         }
                         break;
                     case Constraint::INDEX:
@@ -94,9 +102,9 @@ abstract class FormBuilder{
         return $fields;
     }
 
-    public static function build(Model $model){
+    public function build(Model $model){
         $schema = $model->getSchema();
-        $fields = static::toFormSchema($schema);
+        $fields = $this->toFormSchema($schema);
         $fieldsCollection = [];
         $needHydrate = false;
 
@@ -109,7 +117,8 @@ abstract class FormBuilder{
             $f->type($field['type']);
             $f->class($field['name']);
             $f->id($field['name']);
-            $f->required($field['required']);
+            if($field['required'])
+                $f->required();
             if(!is_null($field['value']))
                 $f->value($field['value']);
             if(!is_null($field['maxlength']))
@@ -125,12 +134,12 @@ abstract class FormBuilder{
         }
         $fieldsCollection[0]->focus();
         if($needHydrate)
-            return static::hydrate($fieldsCollection, $model);
+            return $this->hydrate($fieldsCollection, $model);
         else
             return new Form($fieldsCollection, $model);
     }
 
-    private static function hydrate(array &$fieldCollection, Model $model){
+    private function hydrate(array &$fieldCollection, Model $model){
         foreach ($fieldCollection as $field){
             $field->value($model->{'get' . ucfirst($field['name'])});
         }

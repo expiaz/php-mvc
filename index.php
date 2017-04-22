@@ -5,8 +5,7 @@ define('ROOT', __DIR__ . DS);
 define('CORE', ROOT . 'core' . DS);
 
 require_once CORE . 'shared' . DS . 'constants.php';
-require_once CORE . 'Bootstrapper.php';
-require_once CORE . 'Dispatcher.php';
+require_once CORE . 'shared' . DS . 'helpers.php';
+require_once CORE . 'App.php';
 
-new Core\Bootstrapper();
-new Core\Dispatcher($_GET['p'] ?? '');
+$app = Core\App::init($_GET['p'] ?? '');

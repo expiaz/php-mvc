@@ -2,21 +2,24 @@
 
 namespace Core\Http;
 
-abstract class Router{
+final class Router{
 
-    private static $_routes = [];
+    private $routes;
 
-    public static function redirect($args){
-        if(!is_array($args))
-            return;
-        header('Location:' . Query::build($args['controller'] ?? null,$args['action'] ?? null,$args['param'] ?? null,$args['get'] ?? null));
+    public function __construct()
+    {
+        $this->routes = [];
     }
 
-    public static function on($route, $handler){
+    public static function redirect(Url $url){
+        header('Location:' . $url->build());
+    }
+
+    public function on($route, $handler){
 
         $route = $route === '/' ? $route : trim($route,'/');
 
-        if(static::isDefined($route)){
+        if($this->isDefined($route)){
             return;
         }
 
@@ -33,10 +36,10 @@ abstract class Router{
         $routeEntry['param'] = $param;
         $routeEntry['regex'] = $regex;
 
-        if(static::isClosure($handler)){
+        if($this->isClosure($handler)){
             $routeEntry['type'] = 'CLOSURE';
             $routeEntry['handler'] = $handler;
-            static::$_routes[] = $routeEntry;
+            $this->routes[] = $routeEntry;
 
             return;
         }
@@ -44,7 +47,7 @@ abstract class Router{
         if(is_array($handler)) {
             $routeEntry['type'] = 'CONTROLLER';
             $routeEntry['handler'] = $handler;
-            static::$_routes[] = $routeEntry;
+            $this->routes[] = $routeEntry;
 
             return;
         }
@@ -65,15 +68,15 @@ abstract class Router{
             'action' => $action
         ];
 
-        static::$_routes[] = $routeEntry;
+        $this->routes[] = $routeEntry;
 
-        usort(static::$_routes, function($a,$b){
+        usort($this->routes, function($a,$b){
             return $b['regex'] <=> $a['regex'];
         });
 
     }
 
-    public static function apply($route){
+    public function apply($route){
         if(empty($route)){
             $route = '/';
         }
@@ -81,7 +84,7 @@ abstract class Router{
             $route = trim($route, '/');
         }
 
-        foreach (static::$_routes as $r){
+        foreach ($this->routes as $r){
             if(DEV){
                 echo '[Router::apply] preg_match(' . $r['regex'] . ', ' . $route . ') <br>';
             }
@@ -113,8 +116,8 @@ abstract class Router{
         ];
     }
 
-    private static function isDefined($route){
-        foreach (static::$_routes as $r) {
+    private function isDefined($route){
+        foreach ($this->routes as $r) {
             if($route === $r['route']){
                 return true;
             }
@@ -122,7 +125,7 @@ abstract class Router{
         return false;
     }
 
-    private static function isClosure($t) {
+    private function isClosure($t) {
         return is_object($t);
     }
 
