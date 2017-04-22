@@ -52,94 +52,96 @@ final class App
          * Self
          */
         $this->container[App::class] = $this;
-        $this->container['app'] = function (Container $c) {
+        $this->container['app'] = function (Container $c):App {
             return $c[App::class];
         };
 
         /*
          * Helper
          */
-        $this->container[Helper::class] = $this->container->singleton(function (Container $c) {
+        $this->container[Helper::class] = $this->container->singleton(function (Container $c):Helper {
             return new Helper();
         });
-        $this->container['helper'] = function (Container $c) {
+        $this->container['helper'] = function (Container $c):Helper {
             return $c[Helper::class];
         };
 
         /*
          * Config
          */
-        $this->container[Config::class] = $this->container->singleton(function (Container $c){
+        $this->container[Config::class] = $this->container->singleton(function (Container $c):Config {
             return new Config();
         });
-        $this->container['config'] = function (Container $c) {
+        $this->container['config'] = function (Container $c):Config {
             return $c[Config::class];
         };
 
         /*
          * Cache
          */
-        $this->container[Cache::class] = $this->container->singleton(function (Container $c) {
+        /*
+        $this->container[Cache::class] = $this->container->singleton(function (Container $c):Cache {
             return new Cache();
         });
-        $this->container['cache'] = function (Container $c) {
+        $this->container['cache'] = function (Container $c):Cache {
             return $c[Cache::class];
         };
+        */
 
         /*
          * Cookie
          */
-        $this->container[Cookie::class] = $this->container->singleton(function (Container $c) {
+        $this->container[Cookie::class] = $this->container->singleton(function (Container $c):Cookie {
             return new Cookie();
         });
-        $this->container['cookie'] = function (Container $c) {
+        $this->container['cookie'] = function (Container $c):Cookie {
             return $c[Cookie::class];
         };
 
         /*
          * Session
          */
-        $this->container[Session::class] = $this->container->singleton(function (Container $c) {
+        $this->container[Session::class] = $this->container->singleton(function (Container $c):Session {
             return new Session();
         });
-        $this->container['session'] = function (Container $c) {
+        $this->container['session'] = function (Container $c):Session {
             return $c[Session::class];
         };
 
         /*
          * Database
          */
-        $this->container[Database::class] = function (Container $c) {
+        $this->container[Database::class] = function (Container $c):Database {
             return new Database($c['config']['database']['dsn'], $c['config']['database']['user'], $c['config']['database']['password'], $c['config']['database']['options']);
         };
-        $this->container['database'] = function (Container $c) {
+        $this->container['database'] = function (Container $c):Database {
             return $c[Database::class];
         };
 
         /*
          * Database Singleton
          */
-        $this->container['database.singleton'] = $this->container->singleton(function (Container $c) {
+        $this->container['database.singleton'] = $this->container->singleton(function (Container $c):Database {
             return $c['database'];
         });
 
         /*
          * Query
          */
-        $this->container[Query::class] = function (Container $c) {
+        $this->container[Query::class] = function (Container $c):Query {
             return new Query(new Url());
         };
-        $this->container['query'] = function (Container $c) {
+        $this->container['query'] = function (Container $c):Query {
             return $c[Query::class];
         };
 
         /*
          * Router
          */
-        $this->container[Router::class] = $this->container->singleton(function (Container $c) {
+        $this->container[Router::class] = $this->container->singleton(function (Container $c):Router {
             return new Router();
         });
-        $this->container['router'] = function (Container $c) {
+        $this->container['router'] = function (Container $c):Router {
             return $c[Router::class];
         };
 
@@ -151,20 +153,20 @@ final class App
         /*
          * ORM
          */
-        $this->container[ORM::class] = $this->container->singleton(function (Container $c) {
+        $this->container[ORM::class] = $this->container->singleton(function (Container $c):ORM {
             return new ORM($c[Database::class], $c[Schema::class]);
         });
-        $this->container['orm'] = function (Container $c) {
+        $this->container['orm'] = function (Container $c):ORM {
             return $c[ORM::class];
         };
 
         /*
          * FormBuilder
          */
-        $this->container[FormBuilder::class] = $this->container->singleton(function (Container $c) {
+        $this->container[FormBuilder::class] = $this->container->singleton(function (Container $c):FormBuilder {
             return new FormBuilder();
         });
-        $this->container['form'] = function (Container $c) {
+        $this->container['form'] = function (Container $c):FormBuilder {
             return $c[FormBuilder::class];
         };
 

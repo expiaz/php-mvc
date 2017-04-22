@@ -3,6 +3,12 @@
 namespace Core;
 
 use Closure;
+use Core\Database\Database;
+use Core\Database\Orm\Schema\Schema;
+use Core\Exception\FileNotFoundException;
+use Core\Mvc\Controller\Controller;
+use Core\Mvc\Model\Model;
+use Core\Mvc\Repository\Repository;
 
 class Container implements ArrayAccess {
 
@@ -14,6 +20,13 @@ class Container implements ArrayAccess {
         $this->container['container'] = $this;
     }
 
+    private function normalize(&$key){
+        if(is_array($key))
+            $key = (object) $key;
+        if(is_object($key))
+            $key = get_class($key);
+    }
+
     public function singleton(Closure $singleton){
         return call_user_func($singleton, $this);
     }
@@ -23,25 +36,29 @@ class Container implements ArrayAccess {
     }
 
     public function set($key, $value){
+        $this->normalize($key);
         $this->container[(string) $key] = $value;
     }
 
-    public function get($key, ... $p){
-        if(isset($this->container[$key])){
+    public function get($key){
+        $this->normalize($key);
+        if($this->exists($key)){
             $value = $this->container[$key];
             if($value instanceof Closure)
-                return call_user_func_array($value, array_merge([$this], $p));
+                return call_user_func($value, $this);
             return $value;
         }
-        throw new Exception("Out of bound");
+        return $this->resolve($key);
     }
 
     public function delete($key){
+        $this->normalize($key);
         if($this->exists($key))
             unset($this->container[$key]);
     }
 
     public function exists($key){
+        $this->normalize($key);
         return isset($this->container[$key]);
     }
 
@@ -70,6 +87,45 @@ class Container implements ArrayAccess {
 
     public function offsetGet($offset) {
         return $this->get($offset);
+    }
+
+    public function make($service){
+        return $this->get($service);
+    }
+
+    public function resolve($key){
+        $this->normalize($key);
+
+        if(!$this->exists($key)){
+            $matches = [];
+            if(!preg_match('App[\\\](Model|Controller|Schema|Repository)', $key, $matches))
+                throw new \Exception("can't resolve other class than base mvc app : {$key}");
+
+            switch ($matches[1]){
+                case 'Model':
+                    $this->set($key, function (Container $c) use ($key):Model {
+                        return new $key($c->resolve($c->get(Helper::class)->getSchemaNs($key)));
+                    });
+                    break;
+                case 'Controller':
+                    $this->set($key, function (Container $c) use ($key):Controller {
+                        return new $key($c, $c->resolve($c->get(Helper::class)->getRepositoryNs($key)));
+                    });
+                    break;
+                case 'Schema':
+                    $this->set($key, function (Container $c) use ($key):Schema {
+                        return new $key();
+                    });
+                    break;
+                case 'Repository':
+                    $this->set($key, function (Container $c) use ($key):Repository {
+                        return new $key($c->get(Database::class), $c->resolve($c->get(Helper::class)->getModelNs($key)), $c->resolve($c->get(Helper::class)->getSchemaNs($key)) );
+                    });
+                    break;
+            }
+        }
+
+        $this->get($key);
     }
 
 }

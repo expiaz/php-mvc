@@ -15,12 +15,7 @@ abstract class Model{
     public function __construct(Schema $schema)
     {
         //TODO: replace locator to dependency injections
-        try{
-            $this->schema = Schema::get($this)->schema();
-        }
-        catch (\Exception $e){
-            $this->schema = null;
-        }
+        $this->schema = $schema;
     }
 
     public function __call($function, $args){
@@ -64,6 +59,10 @@ abstract class Model{
 
     public function getId(){
         return $this->id;
+    }
+
+    public function setId($id){
+        return $this->id = $id;
     }
 
     public function getSchema(): array{

@@ -1,33 +1,37 @@
 <?php
 namespace Core;
 
+use Core\Exception\FileNotFoundException;
 use Core\Http\Query;
 use Core\Http\Request;
+use Core\Http\Route\Route;
 use Core\Http\Router;
 
-class Dispatcher{
+final class Dispatcher{
 
-    private $_url;
-    private $_request;
+    private $url;
+    private $request;
+    private $container;
 
-    public function __construct($url){
-        $this->_url = $url;
+    public function __construct(Container $container, string $url){
+        $this->url = $url;
+        $this->container = $container;
         $this->parse();
     }
 
     private function parse(){
-        $this->_request = explode('/',$this->_url);
+        $this->request = explode('/',$this->url);
         $this->filterRequest();
         $this->dispatch();
     }
 
     private function filterRequest(){
 
-        $req = array_filter($this->_request, function ($e){
+        $req = array_filter($this->request, function ($e){
             return $e != "";
         });
 
-        $this->_request = [
+        $this->request = [
             'controller' => $req[0] ?? 'index',
             'action' => $req[1] ?? 'index',
             'param' => array_slice($req,2)
@@ -36,17 +40,37 @@ class Dispatcher{
     }
 
     private function dispatch(){
-
-        $loaders = Router::apply($this->_url);
-        switch($loaders['result']){
-            case 'CLOSURE':
-                return;
-            case 'ROUTE':
-                $this->find($loaders['controller'],$loaders['action'],$loaders['param']);
-                break;
-            case 'NO_ROUTE':
-            default:
-                $this->find();
+        $defined = [];
+        $loaded = $this->container[Router::class]->apply($defined, $this->url);
+        if($loaded){
+            switch ($defined[0]->getType()){
+                case Route::CLOSURE:
+                    call_user_func_array($defined[1]->getHandler(), $defined[1]);
+                    break;
+                case Route::CONTROLLER:
+                    try{
+                        $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs($defined[0]->getHandler()[0]));
+                    }
+                    catch (FileNotFoundException $e){
+                        $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs('index'));
+                    }
+                    try{
+                        $controller->{$defined[0]->getHandler()[1]}(... $defined[1]);
+                    }
+                    catch(\Exception $e){
+                        try{
+                            $controller->index(... $defined[1]);
+                        }
+                        catch (\Exception $e){
+                            $controller->index();
+                        }
+                    }
+                    break;
+            }
+        }
+        else{
+            $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs('index'));
+            $controller->index();
         }
     }
 

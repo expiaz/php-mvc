@@ -2,7 +2,9 @@
 
 namespace Core\Mvc\Repository;
 
+use Closure;
 use Core\Cache;
+use Core\Container;
 use Core\Database\Orm\Schema\Schema;
 use Core\Exception\FileNotFoundException;
 use Core\Helper;
@@ -18,18 +20,12 @@ abstract class Repository{
     protected $table;
     protected $model;
 
-    public function __construct()
+    public function __construct(Database $db, Model $model, Schema $schema)
     {
-        $this->pdo = Database::getInstance();
-        try{
-            $this->schema = Schema::get($this)->schema();
-            $this->table = $this->schema['table'];
-        }
-        catch (\Exception $e){
-            $this->schema = null;
-            $this->table = null;
-        }
-        $this->model = Cache::get(Helper::getModelNamespaceFromInstance($this), true);
+        $this->pdo = $db->getConnection();
+        $this->schema = $schema;
+        $this->table = $this->schema->schema()['table'];
+        $this->model = get_class($model);
     }
 
     public function getTable(){
@@ -41,10 +37,7 @@ abstract class Repository{
     }
 
     public function getModel(): Model{
-        if(is_null($this->model)){
-            throw new \Exception(get_called_class() . "::getModel, model is not defined");
-        }
-        return (new $this->model());
+        return (new $this->model($this->schema));
     }
 
 
@@ -58,28 +51,6 @@ abstract class Repository{
         return $query->fetch();
     }
 
-    public function fetchInto($model, $sql, $param = []){
-        $modelNs = '';
-        if($model instanceof Model){
-            $modelNs = $this->fetchIntoModel(get_class($model));
-        }
-        else if(Helper::isValidModelNamespace($model)){
-           $modelNs = $model;
-        }
-        else{
-            $modelClass = Helper::getModelFilePathFromName($model);
-            $modelNs = Helper::getModelNamespaceFromName($model);
-            if(!file_exists($modelClass))
-                throw new FileNotFoundException("Model not found {$modelNs} at {$modelClass}");
-        }
-
-        $query = $this->pdo->prepare($sql);
-        $query->execute($param);
-        $query->setFetchMode(PDO::FETCH_CLASS, $modelNs);
-        return $query->fetch();
-
-    }
-
     public function fetchAll($sql, $param = []){
         $query = $this->pdo->prepare($sql);
         $query->execute($param);
@@ -89,31 +60,11 @@ abstract class Repository{
         return $query->fetchAll();
     }
 
-    public function fetchAllInto($model, $sql, $param = []){
-        $modelNs = '';
-        if($model instanceof Model){
-            $modelNs = $this->fetchIntoModel(get_class($model));
-        }
-        else if(Helper::isValidModelNamespace($model)){
-            $modelNs = $model;
-        }
-        else{
-            $modelClass = Helper::getModelFilePathFromName($model);
-            $modelNs = Helper::getModelNamespaceFromName($model);
-            if(!file_exists($modelClass))
-                throw new FileNotFoundException("Model not found {$modelNs} at {$modelClass}");
-        }
-
-        $query = $this->pdo->prepare($sql);
-        $query->execute($param);
-        return $query->fetchAll(PDO::FETCH_CLASS, $modelNs);
-    }
-
     public function getLastInsertId(){
         return $this->pdo->lastInsertId();
     }
 
-    public function find($clause, $bind, $model = null){
+    public function find($clause, $bind){
         $sql = 'SELECT ' . ($clause['select'] ? is_array($clause['select']) ? implode(', ',$clause['select']) : $clause['select'] : '*') . ' ';
         $sql .= 'FROM ' . ($clause['from'] ? is_array($clause['from']) ? implode(', ', $clause['from']) : $clause['from'] : $this->table) . ' ';
         $sql .= $clause['where'] ? ( 'WHERE ' . (is_array($clause['where']) ? implode(' AND ', $clause['where']) : $clause['where'])) : '';
@@ -122,8 +73,6 @@ abstract class Repository{
         $sql .= $clause['having'] ? ( 'HAVING ' . (is_array($clause['having']) ? implode(' AND ', $clause['having']) : $clause['having'])) : '';
         $sql .= $clause['limit'] ? ( 'LIMIT ' . (is_array($clause['limit']) ? implode(', ', $clause['limit']) : $clause['limit'])) : '';
         $sql.= ';';
-        if($model)
-            return $this->fetchAllInto($model, $sql, $bind);
         return $this->fetchAll($sql, $bind);
     }
 
@@ -172,18 +121,18 @@ abstract class Repository{
     }
 
     public function update(Model $o){
-        if(count(array_keys($o->getModifications())) > 0){
+        if(count($o->getModifications()) > 0){
             $fields = implode(' AND ',
                 array_map(
-                    function($e){
-                        return $e . ' = :' . $e;
+                    function(string $e):string {
+                        return "{$e} = :{$e}";
                     },
-                    array_keys($o->getModifications())
+                    $o->getModifications()
                 )
             );
             $sql = 'UPDATE ' . ($o->getRepository()->getTable() ?? $this->table) . ' SET ' . $fields . ' WHERE id=' . $o->getId() .';';
             $query = $this->pdo->prepare($sql);
-            return $query->execute(array_map(bind(function($e){ return $this->{"get" . ucfirst($e)}; }, $o), $o->getModifications())) ? $this->getLastInsertId() : false;
+            return $query->execute(array_map(function($e) use ($o) { return $o->{"get" . ucfirst($e)}; }, $o->getModifications())) ? $this->getLastInsertId() : false;
         }
     }
 
@@ -203,10 +152,14 @@ abstract class Repository{
             }
         }
         if(count($f) === 0)
-            return;
+            return false;
         $sql = 'INSERT INTO `' . ($o->getRepository()->getTable() ?? $this->table) . '` (`' . implode('`, `',$f) . '`) VALUES (:' . implode(', :',$f) . ');';
         $query = $this->pdo->prepare($sql);
-        return $query->execute($v) ? $this->getLastInsertId() : false;
+        if($query->execute($v)){
+            $o->setId($this->getLastInsertId());
+            return true;
+        }
+        return false;
     }
 
 }

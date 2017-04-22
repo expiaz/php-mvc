@@ -9,19 +9,17 @@ final class Helper{
      * @param $instance
      * @return string
      */
-    public function getClassNameFromInstance($instance){
-        return $this->getClassNameFromNamespace(get_class($instance));
-    }
+    public function getClassName($instance){
 
-    public function getClassNameFromNamespace($namespace){
-        $instanceClass = substr($namespace, strrpos($namespace, '\\') + 1);
-        $v =  $this->normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
-        return $v;
-    }
+        if(is_object($instance))
+            $instance = get_class($instance);
 
-    public function getClassNameFromFilePath($path){
-        $instanceClass =  substr($path,strrpos($path, DS) + 1);
-        return $this->normalizeName(str_replace('Schema','',str_replace('Repository','',str_replace('Model','',str_replace('Controller','',$instanceClass)))));
+        if(strpos($instance, '//') !== false)
+            return $this->normalizeName(preg_replace('/(Schema|Repository|Controller|Model)/i','',substr($instance, strrpos($instance, '\\') + 1)));
+        else if(strpos($instance, DS) !== false)
+            return $this->normalizeName(preg_replace('/(Schema|Repository|Controller|Model)/i','',substr($instance, strrpos($instance, DS) + 1)));
+
+        return $instance;
     }
 
 
@@ -31,12 +29,10 @@ final class Helper{
      * @param $instance
      * @return string
      */
-    public function getTableNameFromInstance($instance){
-        return $this->getTableNameFromNamespace(get_class($instance));
-    }
-
-    public function getTableNameFromNamespace($namespace){
-        return strtolower( $this->getClassNameFromNamespace($namespace));
+    public function getTableName($instance){
+        if(is_object($instance))
+            $instance = get_class($instance);
+        return strtolower( $this->getClassName($instance));
     }
 
 
@@ -46,17 +42,18 @@ final class Helper{
      * @param $instance
      * @return string
      */
-    public function getClassTypeFromInstance($instance){
-        return $this->getClassTypeFromNamespace(get_class($instance));
-    }
+    public function getClassType($instance){
+        if(is_object($instance))
+            $instance = get_class($instance);
 
-    public function getClassTypeFromNamespace($namespace){
-        $namespace = rtrim($namespace, '\\');
+        $namespace = rtrim($instance, '\\');
         $pos = strrpos($namespace, '\\');
+
         if($pos && strlen($namespace) - 1 >= $pos)
             $name = substr($namespace, strrpos($namespace, '\\') + 1);
         else
             return $namespace;
+
         if(strpos($name, 'Model') !== false){
             return 'Model';
         }
@@ -70,6 +67,7 @@ final class Helper{
             return 'Schema';
         }
     }
+
 
     /**
      * return the namespace of an instance
@@ -100,120 +98,37 @@ final class Helper{
         return count(array_filter(array_keys($a), 'is_string')) > 0;
     }
 
-
-
-    public function getModelNamespaceFromInstance($instance){
-        $name = $this->getClassNameFromInstance($instance);
-        $model = "App\\Model\\{$name}Model";
-        return $model;
+    private function getX($instance, $class){
+        if(is_object($instance))
+            $instance = get_class($instance);
+        $class = $this->normalizeName($class);
+        if(strpos($instance, '\\'))
+            $instance = $this->getClassName($instance);
+        else
+            $instance = $this->normalizeName($instance);
+        return "App\\{$class}\\{$instance}{$class}";
     }
 
-    public function getModelFilePathFromInstance($instance){
-        $name = $this->getClassNameFromInstance($instance);
-        $model = MODEL . "{$name}Model.php";
-        return $model;
-    }
-    
-
-    public function getControllerNamespaceFromInstance($instance){
-        $name = $this->getClassNameFromInstance($instance);
-        $model = "App\\Controller\\{$name}Controller";
-        return $model;
+    public function getModelNs($instance){
+        return $this->getX($instance, 'Model');
     }
 
-    public function getControllerFilePathFromInstance($instance){
-        $name = $this->getClassNameFromInstance($instance);
-        $model = CONTROLLER . "{$name}Controller.php";
-        return $model;
-    }
-    
-
-    public function getRepositoryNamespaceFromInstance($instance){
-        $name = $this->getClassNameFromInstance($instance);
-        $model = "App\\Repository\\{$name}Repository";
-        return $model;
+    public function getSchemaNs($instance){
+        return $this->getX($instance, 'Schema');
     }
 
-    public function getRepositoryFilePathFromInstance($instance){
-        $name = $this->getClassNameFromInstance($instance);
-        $model = REPOSITORY . "{$name}Repository.php";
-        return $model;
-    }
-    
-    
-
-    public function getModelNamespaceFromName($name){
-        $name = $this->normalizeName($name);
-        $model = "App\\Model\\{$name}Model";
-        return $model;
+    public function getControllerNs($instance){
+        return $this->getX($instance, 'Controller');
     }
 
-    public function getModelFilePathFromName($name){
-        $name = $this->normalizeName($name);
-        $model = MODEL . "{$name}Model.php";
-        return $model;
-    }
-    
-
-    public function getControllerNamespaceFromName($name){
-        $name = $this->normalizeName($name);
-        $model = "App\\Controller\\{$name}Controller";
-        return $model;
-    }
-
-    public function getControllerFilePathFromName($name){
-        $name = $this->normalizeName($name);
-        $model = CONTROLLER . "{$name}Controller.php";
-        return $model;
-    }
-    
-
-    public function getRepositoryNamespaceFromName($name){
-        $name = $this->normalizeName($name);
-        $model = "App\\Repository\\{$name}Repository";
-        return $model;
-    }
-
-    public function getRepositoryFilePathFromName($name){
-        $name = $this->normalizeName($name);
-        $model = REPOSITORY . "{$name}Repository.php";
-        return $model;
+    public function getRepositoryNs($instance){
+        return $this->getX($instance, 'Repository');
     }
 
 
-    public function getSchemaNamespaceFromName($name){
-        $name = $this->normalizeName($name);
-        $schema = "App\\Model\\Schema\\{$name}Schema";
-        return $schema;
-    }
-    
-
-    public function isValidModelNamespace($namespace){
-        return $this->isValidNamespaceForClass($namespace, 'Model');
-    }
-
-    public function isValidControllerNamespace($namespace){
-        return $this->isValidNamespaceForClass($namespace, 'Controller');
-    }
-
-    public function isValidRepositoryNamespace($namespace){
-        return $this->isValidNamespaceForClass($namespace, 'Repository');
-    }
-
-    public function isValidSchemaNamespace($namespace){
-        return $this->isValidNamespaceForClass($namespace, 'Schema');
-    }
-
-    public function isValidNamespaceForClass($namespace, $class){
-        return $this->getClassTypeFromNamespace($namespace) === $class;
-    }
 
     public function isValidNamespace($namespace){
-
-        $v =  preg_match("/^App[\\\](Model|Schema|Repository|Controller)[\\\]\w+$/",$namespace);
-        //echo "Helper $this->isValidNamespace {$namespace}" . ($v ? " y" : " n") . "\n<br>";
-        return $v;
-        return $this->isValidRepositoryNamespace($namespace) || $this->isValidControllerNamespace($namespace) || $this->isValidModelNamespace($namespace) || $this->isValidSchemaNamespace($namespace);
+        return preg_match("/^App[\\\](Model|Schema|Repository|Controller)[\\\]\w+$/",$namespace);
     }
 
 }
