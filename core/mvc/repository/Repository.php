@@ -2,12 +2,8 @@
 
 namespace Core\Mvc\Repository;
 
-use Closure;
-use Core\Cache;
-use Core\Container;
-use Core\Database\Orm\Schema\Schema;
-use Core\Exception\FileNotFoundException;
-use Core\Helper;
+use Core\Database\Orm\Schema\Table;
+use Core\Mvc\Schema\Schema;
 use Core\Database\Database;
 use Core\Mvc\Model\Model;
 use PDO;
@@ -17,27 +13,28 @@ abstract class Repository{
 
     protected $pdo;
     protected $schema;
+    protected $schemaDefinition;
     protected $table;
     protected $model;
 
-    public function __construct(Database $db, Model $model, Schema $schema)
+    public function __construct(Database $db, string $modelNs, Schema $schema)
     {
         $this->pdo = $db->getConnection();
         $this->schema = $schema;
-        $this->table = $this->schema->schema()['table'];
-        $this->model = get_class($model);
+        $this->table = $this->schema->table();
+        $this->model = $modelNs;
     }
 
-    public function getTable(){
+    public function getTable(): Table{
         return $this->table;
     }
 
-    public function getSchema(): array{
+    public function getSchema(): Schema{
         return $this->schema;
     }
 
     public function getModel(): Model{
-        return (new $this->model($this->schema));
+        return (new $this->model($this));
     }
 
 

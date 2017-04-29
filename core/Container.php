@@ -4,8 +4,7 @@ namespace Core;
 
 use Closure;
 use Core\Database\Database;
-use Core\Database\Orm\Schema\Schema;
-use Core\Exception\FileNotFoundException;
+use Core\Mvc\Schema\Schema;
 use Core\Mvc\Controller\Controller;
 use Core\Mvc\Model\Model;
 use Core\Mvc\Repository\Repository;
@@ -104,7 +103,7 @@ class Container implements ArrayAccess {
             switch ($matches[1]){
                 case 'Model':
                     $this->set($key, function (Container $c) use ($key):Model {
-                        return new $key($c->resolve($c->get(Helper::class)->getSchemaNs($key)));
+                        return new $key($c->resolve($c->get(Helper::class)->getRepositoryNs($key)));
                     });
                     break;
                 case 'Controller':
@@ -119,7 +118,7 @@ class Container implements ArrayAccess {
                     break;
                 case 'Repository':
                     $this->set($key, function (Container $c) use ($key):Repository {
-                        return new $key($c->get(Database::class), $c->resolve($c->get(Helper::class)->getModelNs($key)), $c->resolve($c->get(Helper::class)->getSchemaNs($key)) );
+                        return new $key($c->get(Database::class), $c->get(Helper::class)->getModelNs($key), $c->resolve($c->get(Helper::class)->getSchemaNs($key)) );
                     });
                     break;
             }

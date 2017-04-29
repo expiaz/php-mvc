@@ -97,7 +97,7 @@ class Route{
                 return true;
             case static::CONTROLLER:
                 try{
-                    container()->resolve("App\\Controller\\{$this->handler['controller']}")->{$this->handler['action']}(... $parameters);
+                    container()->resolve("App\\Controller\\{$this->handler['controller']}Controller")->{$this->handler['action']}(... $parameters);
                 }
                 catch(FileNotFoundException $e){
                     return false;

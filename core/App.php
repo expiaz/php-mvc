@@ -2,13 +2,10 @@
 
 namespace Core;
 
-use Core\Cache;
-use Core\Config;
 use Core\Database\Database;
 use Core\Database\Orm\ORM;
 use Core\Database\Orm\Schema\Schema;
 use Core\Form\FormBuilder;
-use Core\Helper;
 use Core\Http\Cookie;
 use Core\Http\Query;
 use Core\Http\Router;
@@ -153,12 +150,15 @@ final class App
         /*
          * ORM
          */
+
+        /*
         $this->container[ORM::class] = $this->container->singleton(function (Container $c):ORM {
             return new ORM($c[Database::class], $c[Schema::class]);
         });
         $this->container['orm'] = function (Container $c):ORM {
             return $c[ORM::class];
         };
+        */
 
         /*
          * FormBuilder
@@ -174,7 +174,7 @@ final class App
 
     private function launch($httpParameters){
         new Bootstrapper();
-        new Dispatcher($httpParameters);
+        new Dispatcher($this->container, $httpParameters);
     }
 
     public function make($service)

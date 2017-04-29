@@ -1,21 +1,24 @@
 <?php
 namespace Core\Mvc\Model;
 
-use Core\Cache;
-use Core\Database\Orm\Schema\Schema;
-use Core\Helper;
+use Core\Database\Orm\Schema\Table;
 use Core\Mvc\Repository\Repository;
+use Core\Mvc\Schema\Schema;
 
 abstract class Model{
 
     private $_modified = [];
     protected $id;
     protected $schema;
+    protected $repository;
+    protected $table;
 
-    public function __construct(Schema $schema)
+    public function __construct(Repository $r)
     {
         //TODO: replace locator to dependency injections
-        $this->schema = $schema;
+        $this->schema = $r->getSchema();
+        $this->table = $r->getTable();
+        $this->repository = $r;
     }
 
     public function __call($function, $args){
@@ -65,8 +68,16 @@ abstract class Model{
         return $this->id = $id;
     }
 
-    public function getSchema(): array{
+    public function getSchema(): Schema{
         return $this->schema;
+    }
+
+    public function getTable(): Table{
+        return $this->table;
+    }
+
+    public function getSchemaDefintion(): array{
+        return $this->schema->schema();
     }
 
     public function getModifications(): array{

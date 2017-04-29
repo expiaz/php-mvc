@@ -3,7 +3,7 @@
 namespace Core\Database\Orm;
 
 use Core\Database\Database;
-use Core\Database\Orm\Schema\Schema;
+use Core\Mvc\Schema\Schema;
 
 final class ORM{
 
@@ -16,13 +16,13 @@ final class ORM{
         $this->schema = $schema;
     }
 
-    public function create($class){
-        $sql = $this->schema->get($class)->statement();
+    public function create(){
+        $sql = $this->schema->statement();
         return $this->pdo->query($sql) ? true : false;
     }
 
-    public function drop($class){
-        $sql = "DROP TABLE {$this->schema->get($class)->schema()['table']};";
+    public function drop(){
+        $sql = "DROP TABLE {$this->schema->schema()['table']};";
         return $this->pdo->query($sql) ? true : false;
     }
 

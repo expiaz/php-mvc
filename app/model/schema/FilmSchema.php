@@ -2,31 +2,13 @@
 
 namespace App\Model\Schema;
 
-use Core\Database\Orm\Schema\Schema;
+use Core\Mvc\Schema\Schema;
 use Core\Database\Orm\Schema\Table;
 
-class FilmSchema{
+class FilmSchema extends Schema{
 
-    /*
-    public function __construct(){
-
-        Schema::create(FilmSchema::class, 'tableName', function (Table $table){
-            $table->prefix('f');
-
-            $table->addField('id')
-                ->type('int')
-                ->primaryKey();
-
-            $table->addField('name')
-                ->type('varchar')
-                ->length(200);
-        });
-
-    }
-    */
-
-    public function schema(): Table{
-
+    public function __construct()
+    {
         $table = new Table('film');
 
         $table->field('id')
@@ -40,7 +22,7 @@ class FilmSchema{
         $table->field('mailing')
             ->type('boolean');
 
-        return $table;
+        parent::__construct($table);
     }
 
 }
