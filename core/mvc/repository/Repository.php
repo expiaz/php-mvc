@@ -6,20 +6,19 @@ use Core\Database\Orm\Schema\Table;
 use Core\Mvc\Schema\Schema;
 use Core\Database\Database;
 use Core\Mvc\Model\Model;
-use PDO;
+use Core\Utils\DataContainer;
 
 
 abstract class Repository{
 
-    protected $pdo;
+    protected $database;
     protected $schema;
-    protected $schemaDefinition;
     protected $table;
     protected $model;
 
     public function __construct(Database $db, string $modelNs, Schema $schema)
     {
-        $this->pdo = $db->getConnection();
+        $this->database = $db;
         $this->schema = $schema;
         $this->table = $this->schema->table();
         $this->model = $modelNs;
@@ -34,27 +33,30 @@ abstract class Repository{
     }
 
     public function getModel(): Model{
-        return (new $this->model($this));
+        return (new $this->model($this->schema));
     }
 
-
-    public function fetch($sql, $param = []){
-        $query = $this->pdo->prepare($sql);
-        $query->execute($param);
-        if(! is_null($this->model)){
-            $query->setFetchMode(PDO::FETCH_CLASS, $this->model);
-            return $query->fetch();
+    private function hydrate(DataContainer $class){
+        $model = new $this->model($this->schema);
+        $schema = $model->getSchemaDefintion();
+        foreach ($schema['fields'] as $field){
+            if(property_exists($model, $field))
+                $model->{"set" . ucfirst($field)}($class->{"get" . ucfirst($field)}());
         }
-        return $query->fetch();
+        return $model;
     }
 
-    public function fetchAll($sql, $param = []){
-        $query = $this->pdo->prepare($sql);
-        $query->execute($param);
-        if(! is_null($this->model)){
-            return $query->fetchAll(PDO::FETCH_CLASS, $this->model);
-        }
-        return $query->fetchAll();
+    public function fetch(string $sql, array &$param = []){
+        $upplet = $this->database->fetch($sql, $param);
+        $model = $this->hydrate($upplet);
+        return $model;
+    }
+
+    public function fetchAll(string $sql, array &$param = []){
+        $upplets = $this->database->fetchAll($sql, $param);
+        return array_map($upplets, function(DataContainer $e){
+            return $this->hydrate($e);
+        });
     }
 
     public function getLastInsertId(){
@@ -81,20 +83,22 @@ abstract class Repository{
 
     public function getByField($field, $value){
         $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?;";
-        return $this->fetchAll($sql,[$value]);
+        $parameters = array($value);
+        return $this->fetchAll($sql,$parameters);
     }
 
-    public function getByFields(array $fields, array $values){
+    public function getByFields(array $fields, array &$values){
         $where = implode(' AND ',array_map(function($e){
             return "{$e} = :{$e}";
         }, $fields));
         $sql = "SELECT * FROM {$this->table} WHERE {$where};";
-        return $this->fetchAll($sql,[$values]);
+        return $this->fetchAll($sql,$values);
     }
 
     public function getById($id){
         $sql = 'SELECT * FROM ' . $this->table . ' WHERE id = ?;';
-        return $this->fetch($sql,[$id]);
+        $parameters = array($id);
+        return $this->fetch($sql,$parameters);
     }
 
 
@@ -105,7 +109,7 @@ abstract class Repository{
         $shouldUpdate = $this->find(
             [
                 'select' => ' COUNT(id) as nb',
-                'from' => $o->getRepository()->getTable(),
+                'from' => $o->getTable()->getName(),
                 'where' => 'id = :id'
             ],
             [
@@ -127,32 +131,30 @@ abstract class Repository{
                     $o->getModifications()
                 )
             );
-            $sql = 'UPDATE ' . ($o->getRepository()->getTable() ?? $this->table) . ' SET ' . $fields . ' WHERE id=' . $o->getId() .';';
-            $query = $this->pdo->prepare($sql);
-            return $query->execute(array_map(function($e) use ($o) { return $o->{"get" . ucfirst($e)}; }, $o->getModifications())) ? $this->getLastInsertId() : false;
+            $sql = "UPDATE {$o->getTable()->getName()} SET {$fields} WHERE id={$o->getId()};";
+            $parameters = array_map(function($e) use ($o) { return $o->{"get" . ucfirst($e)}; }, $o->getModifications());
+            return $this->database->execute($sql, $parameters) ? $this->getLastInsertId() : false;
         }
     }
 
     public function insert(Model $o){
 
         $fields = array_map(function($e){
-            return $e['name'];
-        }, $o->getSchema()['fields']);
+            return ":{$e}";
+        }, $o->getSchemaDefintion()['fields']);
 
-        $f = [];
-        $v = [];
-        foreach ($fields as $field) {
-            $value = $o->{"get" . ucfirst($field)};
-            if(!is_array($value) && !is_object($value)){
-                $f[] = $field;
-                $v[$field] = $value;
-            }
-        }
-        if(count($f) === 0)
+        $values = array_map(function($e) use ($o){
+            return $o->{"get" . $e['name']};
+        }, $o->getSchemaDefintion()['fields']);
+
+
+
+        if(count($fields) === 0)
             return false;
-        $sql = 'INSERT INTO `' . ($o->getRepository()->getTable() ?? $this->table) . '` (`' . implode('`, `',$f) . '`) VALUES (:' . implode(', :',$f) . ');';
-        $query = $this->pdo->prepare($sql);
-        if($query->execute($v)){
+
+        $sql = "INSERT INTO `{$o->getTable()->getName()}` (`" . implode('`, `', $fields) . "`) VALUES (" . implode(', ', $fields) . ")";
+
+        if($this->database->execute($sql, $values)){
             $o->setId($this->getLastInsertId());
             return true;
         }

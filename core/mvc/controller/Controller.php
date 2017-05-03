@@ -1,8 +1,8 @@
 <?php
 namespace Core\Mvc\Controller;
 
-use Core\Cache;
-use Core\Helper;
+use Core\Container;
+use Core\Http\Request;
 use Core\Mvc\Repository\Repository;
 
 abstract class Controller{
@@ -12,20 +12,18 @@ abstract class Controller{
 
     public function __construct(Container $container, Repository $repository)
     {
-        //$this->repository = Cache::get(Helper::getRepositoryNamespaceFromInstance($this), true);
         $this->container = $container;
         $this->repository = $repository;
     }
 
-    public function getRepository($name = null): Repository{
-        if(! is_null($name)){
-            if($name instanceof Model || $name instanceof Repository || $name instanceof Controller)
-                $name = Helper::getClassNameFromInstance($name);
-            elseif (Helper::isValidNamespace($name))
-                $name = Helper::getClassNameFromNamespace($name);
-            return Cache::get(Helper::getRepositoryNamespaceFromName($name), true);
-        }
+    public function getRepository(): Repository{
         return $this->repository;
     }
+
+    public function getContainer(): Container{
+        return $this->container;
+    }
+
+    public abstract function index(Request $request, ... $parameters);
 
 }

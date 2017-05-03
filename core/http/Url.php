@@ -51,7 +51,7 @@ final class Url{
     }
 
     public function build(){
-        return $this->url = WEBROOT . $this->controller . $this->action . ($this->payload !== null ? '&' . http_build_query($this->payload) : '');
+        return $this->url = WEBROOT . $this->controller . '/' . $this->action . (count($this->payload) ? '&' . http_build_query($this->payload) : '');
     }
 
 

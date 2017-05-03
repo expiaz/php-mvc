@@ -5,12 +5,16 @@ namespace Core\Mvc\View;
 use Core\Database\Database;
 use Core\Http\Query;
 use Core\Http\Session;
+use Core\Http\Url;
 
 abstract class View
 {
 
     static function render($viewPath, $vars)
     {
+
+        $container = container();
+
         $path = VIEW . trim($viewPath,'/') . '.php';
         if (!file_exists($path)) {
             $path = VIEW . 'index.php';
@@ -18,13 +22,18 @@ abstract class View
         if(!isset($vars['error'])){
             $vars['error'] = false;
         }
+        if(!isset($vars['title'])){
+            $vars['title'] = 'title';
+        }
 
         $vars['connected'] = [
-            'link' => Session::exists('connected') ? Query::build('index', 'deconnexion') : Query::build('index', 'connexion'),
-            'message' => Session::exists('connected') ? 'deconnexion' : 'connexion'
+            'link' => $container[Session::class]->exists('connected') ? (new Url('index', 'deconnexion'))->build() : (new Url('index', 'deconnexion'))->build(),
+            'message' => $container[Session::class]->exists('connected') ? 'deconnexion' : 'connexion'
         ];
 
-        $vars['title'] = Query::getAction();
+        $vars['connection_link'] = "<a href=\" {$vars['connected']['link']} \">{$vars['connected']['message']}</a>";
+
+
 
         $vars['home'] = WEBROOT;
 
@@ -43,7 +52,7 @@ abstract class View
     }
 
     private static function end(){
-        Database::close();
+        container(Database::class)->close();
         exit(0);
     }
 

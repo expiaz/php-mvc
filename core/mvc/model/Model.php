@@ -13,12 +13,11 @@ abstract class Model{
     protected $repository;
     protected $table;
 
-    public function __construct(Repository $r)
+    public function __construct(Schema $schema)
     {
         //TODO: replace locator to dependency injections
-        $this->schema = $r->getSchema();
-        $this->table = $r->getTable();
-        $this->repository = $r;
+        $this->schema = $schema;
+        $this->table = $schema->table();
     }
 
     public function __call($function, $args){

@@ -103,7 +103,7 @@ final class FormBuilder{
     }
 
     public function build(Model $model){
-        $schema = $model->getSchema();
+        $schema = $model->getSchema()->schema();
         $fields = $this->toFormSchema($schema);
         $fieldsCollection = [];
         $needHydrate = false;

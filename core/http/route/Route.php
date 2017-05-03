@@ -15,10 +15,10 @@ class Route{
     const CLOSURE = 1;
     const CONTROLLER = 2;
 
-    public function __construct(string $route, mixed $handler)
+    public function __construct(string $route, $handler)
     {
         $this->route = $route;
-        $this->handler = $this->handle($handler);
+        $this->handle($handler);
         $this->makeRoute();
     }
 
@@ -38,7 +38,7 @@ class Route{
         return $this->handler;
     }
 
-    private function handle(mixed &$handler): array{
+    private function handle(&$handler){
 
         if($handler instanceof Closure){
             $this->handler = $handler;

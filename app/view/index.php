@@ -1,1 +1,3 @@
+<?=$connection_link?>
+
 <?=$content?>

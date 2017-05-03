@@ -9,18 +9,17 @@ use Core\Mvc\View\View;
 
 class IndexController extends Controller{
 
-    public function __construct(){
-        parent::__construct();
-    }
-
     public function index(Request $r, ... $p){
 
-        $form = FormBuilder::build($this->getRepository()->getModel());
+        echo 'hi';
 
-        return View::render('index', [
-            'content' => $form->build()
+    }
+
+    public function a(Request $r){
+        $f = $this->container[FormBuilder::class]->build($this->getRepository()->getModel());
+        View::render('index', [
+            'content' => $f->build()
         ]);
-
     }
 
 }

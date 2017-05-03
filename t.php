@@ -1,12 +1,15 @@
 <?php
 
-class A{
-    function __toString()
-    {
-        return 'B';
-    }
-}
+use Core\Autoloader;
 
-$b = new A();
+define('DS', DIRECTORY_SEPARATOR);
+define('ROOT', __DIR__ . DS);
+define('CORE', ROOT . 'core' . DS);
 
-echo $b;
+require_once CORE . 'shared' . DS . 'constants.php';
+require_once CORE . 'shared' . DS . 'helpers.php';
+require_once CORE . 'Autoloader.php';
+
+Autoloader::register();
+
+$app = Core\App::init('a');

@@ -7,42 +7,40 @@ use Core\Mvc\Model\Model;
 class IndexModel extends Model {
 
     protected $id;
-    private $name;
+    private $affiche;
+    private $mailing;
 
-    public function __construct(){
-        parent::__construct();
-    }
-
-    public function getId(){
-        return $this->id;
+    /**
+     * @return mixed
+     */
+    public function getAffiche()
+    {
+        return $this->affiche;
     }
 
     /**
-     * @param mixed $id
+     * @param mixed $affiche
      */
-    public function setId($id)
+    public function setAffiche($affiche)
     {
-        parent::setter('id', $id);
-        $this->id = $id;
+        $this->affiche = $affiche;
     }
 
     /**
      * @return mixed
      */
-    public function getName()
+    public function getMailing()
     {
-        return $this->name;
+        return $this->mailing;
     }
 
     /**
-     * @param mixed $name
+     * @param mixed $mailing
      */
-    public function setName($name)
+    public function setMailing($mailing)
     {
-        parent::setter('name', $name);
-        $this->name = $name;
+        $this->mailing = $mailing;
     }
-
 
 
 }

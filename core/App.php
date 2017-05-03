@@ -3,8 +3,6 @@
 namespace Core;
 
 use Core\Database\Database;
-use Core\Database\Orm\ORM;
-use Core\Database\Orm\Schema\Schema;
 use Core\Form\FormBuilder;
 use Core\Http\Cookie;
 use Core\Http\Query;
@@ -15,31 +13,26 @@ use Core\Http\Url;
 final class App
 {
 
-    private static $instance;
+    private static $instance = null;
 
     private $container;
 
     private function __construct($httpParameters)
     {
-        require_once CORE . 'Bootstrapper.php';
+        static::$instance = $this;
         $this->container = new Container();
         $this->register();
         $this->launch($httpParameters);
     }
 
-    public static function create($httpParameters): App{
-        return new static($httpParameters);
-    }
-
     public static function init($httpParameters): App{
         if(is_null(static::$instance))
-            static::$instance = new static($httpParameters);
-        return static::$instance;
+            return new static($httpParameters);
     }
 
     public static function getInstance(): App{
         if(is_null(static::$instance))
-            static::init('');
+            throw new \Exception("App may have not been initialized, use App::init(url)");
         return static::$instance;
     }
 
@@ -73,6 +66,8 @@ final class App
             return $c[Config::class];
         };
 
+        require_once CORE . 'shared' . DS . 'webConstants.php';
+
         /*
          * Cache
          */
@@ -99,7 +94,9 @@ final class App
          * Session
          */
         $this->container[Session::class] = $this->container->singleton(function (Container $c):Session {
-            return new Session();
+            $s = new Session();
+            $s->activate();
+            return $s;
         });
         $this->container['session'] = function (Container $c):Session {
             return $c[Session::class];
@@ -173,7 +170,7 @@ final class App
     }
 
     private function launch($httpParameters){
-        new Bootstrapper();
+        require_once APP . 'route.php';
         new Dispatcher($this->container, $httpParameters);
     }
 

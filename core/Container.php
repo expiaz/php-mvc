@@ -2,6 +2,7 @@
 
 namespace Core;
 
+use ArrayAccess;
 use Closure;
 use Core\Database\Database;
 use Core\Mvc\Schema\Schema;
@@ -97,34 +98,34 @@ class Container implements ArrayAccess {
 
         if(!$this->exists($key)){
             $matches = [];
-            if(!preg_match('App[\\\](Model|Controller|Schema|Repository)', $key, $matches))
+            if(!preg_match('/App[\\\](Model|Controller|Schema|Repository)/', $key, $matches))
                 throw new \Exception("can't resolve other class than base mvc app : {$key}");
 
             switch ($matches[1]){
                 case 'Model':
                     $this->set($key, function (Container $c) use ($key):Model {
-                        return new $key($c->resolve($c->get(Helper::class)->getRepositoryNs($key)));
+                        return new $key($c->resolve($c->get(Helper::class)->getSchemaNs($key)));
                     });
                     break;
                 case 'Controller':
-                    $this->set($key, function (Container $c) use ($key):Controller {
+                    $this->set($key, $this->singleton(function (Container $c) use ($key):Controller {
                         return new $key($c, $c->resolve($c->get(Helper::class)->getRepositoryNs($key)));
-                    });
+                    }));
                     break;
                 case 'Schema':
-                    $this->set($key, function (Container $c) use ($key):Schema {
+                    $this->set($key, $this->singleton(function (Container $c) use ($key):Schema {
                         return new $key();
-                    });
+                    }));
                     break;
                 case 'Repository':
-                    $this->set($key, function (Container $c) use ($key):Repository {
+                    $this->set($key, $this->singleton(function (Container $c) use ($key):Repository {
                         return new $key($c->get(Database::class), $c->get(Helper::class)->getModelNs($key), $c->resolve($c->get(Helper::class)->getSchemaNs($key)) );
-                    });
+                    }));
                     break;
             }
         }
 
-        $this->get($key);
+        return $this->get($key);
     }
 
 }

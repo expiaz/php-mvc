@@ -3,14 +3,16 @@
 namespace Core\Database;
 
 
+use Core\Utils\DataContainer;
 use PDO, PDOException;
+use PDOStatement;
 
 
 final class Database{
 
     private $pdo;
 
-    public function __construct($dsn, $user, $pwd, $opts)
+    public function __construct(string $dsn, string $user, string $pwd, array $opts)
     {
         try {
             $this->pdo = new PDO($dsn, $user, $pwd, $opts);
@@ -33,7 +35,29 @@ final class Database{
         $this->pdo = null;
     }
 
-    public function raw($sql = 'SELECT NOW();', $param = []){
+    public function query(string $sql, int $mode = PDO::FETCH_OBJ): PDOStatement{
+        return $this->pdo->query($sql, $mode);
+    }
+
+    public function execute(string $sql, array &$parameters = []): bool{
+        $query = $this->pdo->prepare($sql);
+        return $query->execute($parameters);
+    }
+
+    public function fetch(string $sql, array &$parameters = []): DataContainer{
+        $query = $this->pdo->prepare($sql);
+        $query->execute($parameters);
+        $query->setFetchMode(PDO::FETCH_CLASS, DataContainer::class);
+        return $query->fetch();
+    }
+
+    public function fetchAll(string $sql, array &$parameters = []): array{
+        $query = $this->pdo->prepare($sql);
+        $query->execute($parameters);
+        return $query->fetchAll(PDO::FETCH_CLASS, DataContainer::class);
+    }
+
+    public function raw(string $sql = 'SELECT NOW();', array &$param = []): array{
         $query = $this->pdo->prepare($sql);
         $query->execute($param);
         return $query->fetchAll(PDO::FETCH_OBJ);

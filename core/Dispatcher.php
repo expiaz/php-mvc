@@ -49,20 +49,21 @@ final class Dispatcher{
                     break;
                 case Route::CONTROLLER:
                     try{
-                        $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs($defined[0]->getHandler()[0]));
+                        $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs($defined[0]->getHandler()['controller']));
                     }
                     catch (FileNotFoundException $e){
                         $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs('index'));
                     }
                     try{
-                        $controller->{$defined[0]->getHandler()[1]}(... $defined[1]);
+                        $controller->{$defined[0]->getHandler()['action']}(new Request($_GET, $_POST, $_FILES), ... $defined[1]);
                     }
                     catch(\Exception $e){
                         try{
-                            $controller->index(... $defined[1]);
+                            $controller->index(new Request($_GET, $_POST, $_FILES), ... $defined[1]);
                         }
                         catch (\Exception $e){
-                            $controller->index();
+                            echo 'error controller load';
+                            exit(1);
                         }
                     }
                     break;
@@ -70,7 +71,7 @@ final class Dispatcher{
         }
         else{
             $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs('index'));
-            $controller->index();
+            $controller->index(new Request([], [], []), []);
         }
     }
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Model\Schema;
+namespace App\Schema;
 
 use Core\Database\Orm\Schema\Table;
+use Core\Mvc\Schema\Schema;
 
-class IndexSchema{
+class IndexSchema extends Schema {
 
-
-    public function schema(): Table{
+    public function __construct(){
 
         $table = new Table('index');
 
@@ -21,7 +21,7 @@ class IndexSchema{
         $table->field('mailing')
             ->type('boolean');
 
-        return $table;
+        parent::__construct($table);
     }
 
 }

@@ -6,16 +6,7 @@ use PDO;
 
 final class Config implements ArrayAccess {
 
-    private $config = [
-        'sgbd' => 'mysql',
-        'bd' => 'webphp',
-        'host' => 'localhost',
-        'charset' => 'UTF8',
-        'user' => 'root',
-        'password' => '',
-        'options' => [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ],
-        'baseURI' => '/'
-        ];
+    private $config = [];
 
     public function __construct()
     {
@@ -34,8 +25,8 @@ final class Config implements ArrayAccess {
             ]
         ];
 
-        $db = $this['database'];
-        $db['dsn'] = "{$db['sgbd']}:host={$db['host']};dbname={$db['name']};charset={$db['charset']}";
+        $db = $this->config['database'];
+        $this->config['database']['dsn'] = "{$db['sgbd']}:host={$db['host']};dbname={$db['name']};charset={$db['charset']}";
     }
 
 
