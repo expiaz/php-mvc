@@ -106,6 +106,12 @@ class Form{
         return $out;
     }
 
+
+    public function __toString()
+    {
+        return $this->build();
+    }
+
     private function bindInputEntry($input, $entry){
         switch($input->type){
             case 'submit':

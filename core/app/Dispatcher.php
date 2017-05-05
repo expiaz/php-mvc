@@ -1,7 +1,8 @@
 <?php
-namespace Core;
+namespace Core\App;
 
-use Core\Exception\FileNotFoundException;
+use Core\Utils\HttpParameterBag;
+use Core\Factory\LoaderFactory;
 use Core\Http\Query;
 use Core\Http\Request;
 use Core\Http\Route\Route;
@@ -40,39 +41,11 @@ final class Dispatcher{
     }
 
     private function dispatch(){
-        $defined = [];
-        $loaded = $this->container[Router::class]->apply($defined, $this->url);
-        if($loaded){
-            switch ($defined[0]->getType()){
-                case Route::CLOSURE:
-                    call_user_func_array($defined[1]->getHandler(), $defined[1]);
-                    break;
-                case Route::CONTROLLER:
-                    try{
-                        $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs($defined[0]->getHandler()['controller']));
-                    }
-                    catch (FileNotFoundException $e){
-                        $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs('index'));
-                    }
-                    try{
-                        $controller->{$defined[0]->getHandler()['action']}(new Request($_GET, $_POST, $_FILES), ... $defined[1]);
-                    }
-                    catch(\Exception $e){
-                        try{
-                            $controller->index(new Request($_GET, $_POST, $_FILES), ... $defined[1]);
-                        }
-                        catch (\Exception $e){
-                            echo 'error controller load';
-                            exit(1);
-                        }
-                    }
-                    break;
-            }
+
+        if($this->container[Router::class]->apply($this->url) === false){
+            $this->container[LoaderFactory::class]->create(new Route('/', 'index@error404'), new HttpParameterBag());
         }
-        else{
-            $controller = $this->container->resolve($this->container->get(Helper::class)->getControllerNs('index'));
-            $controller->index(new Request([], [], []), []);
-        }
+
     }
 
     private function find($ctrl = null, $act = null, $p = null){
@@ -101,6 +74,7 @@ final class Dispatcher{
         $this->load($controller, $action, $param);
     }
 
+
     private function load($controller, $action, $param){
         $controllerNs = Helper::getControllerNamespaceFromName($controller);
         $controllerClass = new $controllerNs();
@@ -126,6 +100,7 @@ final class Dispatcher{
         call_user_func_array([$controllerClass,$action],array_merge([$request],$param));
     }
 
+
     private function methodExists($class, $method){
         $method = strtolower($method);
         $methods = array_map('strtolower', get_class_methods($class));
@@ -134,5 +109,6 @@ final class Dispatcher{
         }
         return false;
     }
+
 
 }

@@ -4,6 +4,10 @@ use Core\Http\Router;
 
 $router = container(Router::class);
 
-$router->on('/a/b/c', 'index@a');
+//$router->default('index@default');
+
+$router->on('/', 'index@index');
+$router->on('/:id', 'index@id');
+
 
 

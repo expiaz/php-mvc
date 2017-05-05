@@ -1,10 +1,11 @@
 <?php
 
-namespace Core;
+namespace Core\App;
 
 use ArrayAccess;
 use Closure;
 use Core\Database\Database;
+use Core\Helper;
 use Core\Mvc\Schema\Schema;
 use Core\Mvc\Controller\Controller;
 use Core\Mvc\Model\Model;

@@ -1,9 +1,10 @@
 <?php
 namespace Core\Mvc\Controller;
 
-use Core\Container;
+use Core\App\Container;
 use Core\Http\Request;
 use Core\Mvc\Repository\Repository;
+use Core\Utils\HttpParameterBag;
 
 abstract class Controller{
 
@@ -24,6 +25,6 @@ abstract class Controller{
         return $this->container;
     }
 
-    public abstract function index(Request $request, ... $parameters);
+    public abstract function index(Request $request, HttpParameterBag $parameters);
 
 }

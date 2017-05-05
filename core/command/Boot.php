@@ -12,7 +12,7 @@ class Boot{
         define('CORE', ROOT . 'core' . DS);
 
         require_once CORE . 'shared' . DS . 'constants.php';
-        require_once CORE . 'Autoload.php';
+        require_once CORE . 'Autoloader.php';
 
         Autoloader::register();
     }

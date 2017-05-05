@@ -2,6 +2,10 @@
 
 namespace Core;
 
+use Core\Factory\RequestFactory;
+use Core\App\Container;
+use Core\App\Dispatcher;
+use Core\Factory\LoaderFactory;
 use Core\Database\Database;
 use Core\Form\FormBuilder;
 use Core\Http\Cookie;
@@ -166,6 +170,18 @@ final class App
         $this->container['form'] = function (Container $c):FormBuilder {
             return $c[FormBuilder::class];
         };
+
+
+        /*
+         * Factories
+         */
+        $this->container[LoaderFactory::class] = $this->container->singleton(function (Container $c):LoaderFactory{
+            return new LoaderFactory($c);
+        });
+
+        $this->container[RequestFactory::class] = $this->container->singleton(function (Container $c):RequestFactory{
+            return new RequestFactory($c);
+        });
 
     }
 

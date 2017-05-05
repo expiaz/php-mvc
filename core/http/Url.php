@@ -15,8 +15,6 @@ final class Url{
         $this->payload = $payload;
     }
 
-
-
     public function setController($controller){
         $this->controller = $controller;
     }

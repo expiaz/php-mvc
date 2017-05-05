@@ -6,7 +6,13 @@ use Core\Http\Route\Route;
 
 final class Router{
 
+    const GET = 'GET';
+    const PUT = 'PUT';
+    const DELETE = 'DELETE';
+    const POST = 'POST';
+
     private $routes;
+    private $default;
 
     public function __construct()
     {
@@ -33,7 +39,14 @@ final class Router{
 
     }
 
-    public function apply(array &$result, string $route){
+    public function default($handler){
+        if(!$this->default instanceof Route){
+            $this->default = new Route('*', $handler);
+        }
+    }
+
+    public function apply(string $route){
+
         if(empty($route)){
             $route = '/';
         }
@@ -41,13 +54,15 @@ final class Router{
             $route = trim($route, '/');
         }
 
-        $parameters = [];
         foreach ($this->routes as $r) {
-            if($r->match($route, $parameters)){
-                $result[0] = $r;
-                $result[1] = $parameters;
+            if($r->match($route)){
+                $r->apply();
                 return true;
             }
+        }
+        if($this->default instanceof Route){
+            $this->default->apply($route);
+            return true;
         }
         return false;
     }

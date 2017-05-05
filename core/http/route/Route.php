@@ -2,7 +2,9 @@
 
 namespace Core\Http\Route;
 
-use Core\Exception\FileNotFoundException;
+use Core\Utils\HttpParameterBag;
+use Core\App\Handler;
+use Core\Factory\LoaderFactory;
 
 class Route{
 
@@ -11,6 +13,8 @@ class Route{
     private $param;
     private $regex;
     private $handler;
+
+    private $url;
 
     const CLOSURE = 1;
     const CONTROLLER = 2;
@@ -34,7 +38,7 @@ class Route{
         return $this->regex;
     }
 
-    public function getHandler(){
+    public function getHandler(): Handler{
         return $this->handler;
     }
 
@@ -48,7 +52,7 @@ class Route{
 
         if(is_array($handler)){
             $this->type = static::CONTROLLER;
-            $this->handler = [$handler['controller'] ?? 'index', $handler['action'] ?? 'index'];
+            $this->handler = new Handler($handler['controller'] ?? 'index', $handler['action'] ?? 'index');
             return;
         }
 
@@ -63,14 +67,13 @@ class Route{
         }
 
         $this->type = static::CONTROLLER;
-        $this->handler = [
-            'controller' => $controller,
-            'action' => $action
-        ];
+        $this->handler = new Handler($controller, $action);
 
     }
 
     private function makeRoute(){
+        if($this->route == '*') return;
+
         preg_match_all('/:(\w*)/',$this->route,$p,PREG_SET_ORDER);
         $this->param = array_map(function($e){
             return $e[1];
@@ -79,31 +82,35 @@ class Route{
         $this->regex = '|^' . preg_replace('/:([^\/]*)/','([^\/]*)',$regex) . '$|';
     }
 
-    public function match(string $route, array &$p = []){
-        if(preg_match($this->regex,$route,$parameters)){
-            for($i = 0; $i < count($this->param); $i++){
-                $p[$this->param[$i]] = $parameters[$i+1];
-            }
+    public function match(string $route){
+        if($this->route == '*'){
             return true;
         }
-        $p = [];
+
+        if(preg_match($this->regex,$route)){
+            $this->url = $route;
+            return true;
+        }
         return false;
     }
 
-    public function trigger(array &$parameters){
-        switch ($this->type){
-            case static::CLOSURE:
-                call_user_func_array($this->handler, $parameters);
-                return true;
-            case static::CONTROLLER:
-                try{
-                    container()->resolve("App\\Controller\\{$this->handler['controller']}Controller")->{$this->handler['action']}(... $parameters);
-                }
-                catch(FileNotFoundException $e){
-                    return false;
-                }
-                return true;
+    public function apply(string $url = null){
+
+        if(!is_null($url))
+            $this->url = $url;
+
+        if($this->route == '*')
+            return container(LoaderFactory::class)->create($this, new HttpParameterBag(explode('/',$this->url)));
+
+        $p = [];
+        if(preg_match($this->regex,$this->url,$parameters)){
+            for($i = 0; $i < count($this->param); $i++){
+                $p[$this->param[$i]] = $parameters[$i+1];
+            }
         }
+
+
+        container(LoaderFactory::class)->create($this, new HttpParameterBag($p));
     }
 
 }

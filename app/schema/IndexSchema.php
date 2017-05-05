@@ -14,12 +14,12 @@ class IndexSchema extends Schema {
         $table->field('id')
             ->autoIncrement();
 
-        $table->field('affiche')
-            ->type('file')
+        $table->field('name')
+            ->type('varchar')
              ->nullable();
 
-        $table->field('mailing')
-            ->type('boolean');
+        $table->field('age')
+            ->type('int');
 
         parent::__construct($table);
     }

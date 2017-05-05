@@ -7,6 +7,16 @@ use Core\Http\Query;
 use Core\Http\Session;
 use Core\Http\Url;
 
+/**
+ * Class View
+ * @package Core\Mvc\View
+ */
+
+/*
+ * TODO DI with container, request (composition?), viewPath, parameterBag
+ *
+ */
+
 abstract class View
 {
 
@@ -33,8 +43,6 @@ abstract class View
 
         $vars['connection_link'] = "<a href=\" {$vars['connected']['link']} \">{$vars['connected']['message']}</a>";
 
-
-
         $vars['home'] = WEBROOT;
 
         echo static::capture($path,$vars);
@@ -52,7 +60,6 @@ abstract class View
     }
 
     private static function end(){
-        container(Database::class)->close();
         exit(0);
     }
 

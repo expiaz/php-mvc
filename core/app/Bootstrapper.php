@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Core\App;
 
 class Bootstrapper{
 
@@ -18,10 +18,10 @@ class Bootstrapper{
     }
 
     public function loadMvc(){
-        require_once CORE_MVC .'view' . DS . 'View.php';
-        require_once CORE_MVC .'repository' . DS . 'Repository.php';
-        require_once CORE_MVC .'model' . DS . 'Model.php';
-        require_once CORE_MVC .'controller' . DS . 'Controller.php';
+        require_once CORE_MVC . 'view' . DS . 'View.php';
+        require_once CORE_MVC . 'repository' . DS . 'Repository.php';
+        require_once CORE_MVC . 'model' . DS . 'Model.php';
+        require_once CORE_MVC . 'controller' . DS . 'Controller.php';
     }
 
     public function initialize(){
