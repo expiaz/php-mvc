@@ -51,10 +51,7 @@ abstract class Model{
     }
 
     protected function setter($k, $v){
-        /*if(!in_array($k,array_keys(get_class_vars(get_called_class()))))
-            return;*/
-
-        if($v !== $this->{$k}){
+        if($v !== $this->{'get' . ucfirst($k)}()){
             $this->_modified[] = $k;
         }
     }
@@ -64,6 +61,7 @@ abstract class Model{
     }
 
     public function setId($id){
+        $this->setter('id', $id);
         return $this->id = $id;
     }
 

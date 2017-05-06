@@ -5,6 +5,7 @@ namespace Core\Form;
 use Closure;
 use Core\Database\Database;
 use Core\Database\Orm\Schema\Constraint;
+use Core\Facade\Contracts\DatabaseFacade;
 use Core\Mvc\Model\Model;
 
 final class FormBuilder{
@@ -42,14 +43,14 @@ final class FormBuilder{
             }
 
 
-            $description['required'] = $field['null'] ? true : false;
+            $description['required'] = $field['null'] ? false : true;
 
             if(! is_null($field['default'])){
-                if($field['default'] == 'NOT NULL'){
+                if($field['default'] === 'NOT NULL'){
                     $description['required'] = true;
                     $description['value'] = null;
                 }
-                elseif($field['default'] == 'NULL'){
+                elseif($field['default'] === 'NULL'){
                     $description['required'] = false;
                     $description['value'] = null;
                 }
@@ -88,7 +89,7 @@ final class FormBuilder{
                         $description['type'] = 'select';
                         if($constraint['type'] == Constraint::MANY_TO_MANY) $description['multiple'] = true;
                         else $description['multiple'] = false;
-                        $opts = Database::raw("SELECT {$constraint["field"]} AS option FROM {$constraint["table"]};");
+                        $opts = DatabaseFacade::raw("SELECT {$constraint["field"]} AS option FROM {$constraint["table"]};");
                         $description['options'] = [];
                         foreach($opts as $o){
                             $description['options'][] = ["value" => $o->option, "content" => $o->option, 'selected' => $description['value'] && $description['value'] == $o->option ? true : false];
@@ -106,11 +107,8 @@ final class FormBuilder{
         $schema = $model->getSchema()->schema();
         $fields = $this->toFormSchema($schema);
         $fieldsCollection = [];
-        $needHydrate = false;
 
         foreach ($fields as $field){
-            if(preg_match('/id/i',$field['name']) && !is_null($field['value']))
-                $needHydrate = true;
 
             $f = new Field();
             $f->name($field['name']);
@@ -130,18 +128,15 @@ final class FormBuilder{
                     $f->option($option['value'], $option['content'], $option['selected']);
             $f->label();
             $f->placeholder($field['name']);
-            $fieldsCollection[] = $f;
+            $fieldsCollection[$field['name']] = $f;
         }
-        $fieldsCollection[0]->focus();
-        if($needHydrate)
-            return $this->hydrate($fieldsCollection, $model);
-        else
-            return new Form($fieldsCollection, $model);
+        $fieldsCollection[array_keys($fieldsCollection)[0]]->focus();
+        return $this->hydrate($fieldsCollection, $model);
     }
 
     private function hydrate(array &$fieldCollection, Model $model){
-        foreach ($fieldCollection as $field){
-            $field->value($model->{'get' . ucfirst($field['name'])});
+        foreach ($model->getModifications() as $field){
+            $fieldCollection[$field]->value($model->{'get' . ucfirst($field)}());
         }
         return new Form($fieldCollection, $model);
     }

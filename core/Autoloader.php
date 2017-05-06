@@ -28,10 +28,16 @@ class Autoloader{
         if(DEV)
             echo "{$fileName} autloaded <br>";
 
-        if(file_exists(ROOT . $fileName))
+        if(file_exists(ROOT . $fileName)){
             require_once ROOT . $fileName;
-        else
+            return true;
+        }
+        else{
             throw new FileNotFoundException("{$fileName} does not exists");
+        }
+
+
+
 
     }
 

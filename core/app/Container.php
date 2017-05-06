@@ -28,6 +28,10 @@ class Container implements ArrayAccess {
             $key = get_class($key);
     }
 
+    public function getServices(){
+        return array_keys($this->container);
+    }
+
     public function singleton(Closure $singleton){
         return call_user_func($singleton, $this);
     }

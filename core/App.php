@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use ArrayAccess;
+use Core\Facade\AliasesLoader;
 use Core\Factory\RequestFactory;
 use Core\App\Container;
 use Core\App\Dispatcher;
@@ -14,7 +16,7 @@ use Core\Http\Router;
 use Core\Http\Session;
 use Core\Http\Url;
 
-final class App
+final class App implements ArrayAccess
 {
 
     private static $instance = null;
@@ -183,6 +185,11 @@ final class App
             return new RequestFactory($c);
         });
 
+        new AliasesLoader();
+    }
+
+    public static function make(string $service){
+        return static::getInstance()[$service];
     }
 
     private function launch($httpParameters){
@@ -190,13 +197,27 @@ final class App
         new Dispatcher($this->container, $httpParameters);
     }
 
-    public function make($service)
-    {
-        return $this->container[$service];
-    }
-
     public function getContainer(): Container{
         return $this->container;
     }
 
+    public function offsetExists($offset)
+    {
+        return $this->container->offsetExists($offset);
+    }
+
+    public function offsetGet($offset)
+    {
+        return $this->container->offsetGet($offset);
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        return $this->container->offsetSet($offset, $value);
+    }
+
+    public function offsetUnset($offset)
+    {
+        return $this->container->offsetUnset($offset);
+    }
 }

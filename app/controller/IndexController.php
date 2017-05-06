@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use Core\Facade\Contracts\FormFacade;
+use Core\Facade\Contracts\RequestFacade;
+use Core\Facade\Contracts\UrlFacade;
 use Core\Form\FormBuilder;
 use Core\Http\Request;
 use Core\Mvc\Controller\Controller;
@@ -11,7 +14,7 @@ use Core\Utils\HttpParameterBag;
 class IndexController extends Controller{
 
     public function index(Request $r, HttpParameterBag $p){
-        $f = $this->container[FormBuilder::class]->build($this->getRepository()->getModel());
+        $f = FormFacade::create($this->getRepository()->getModel());
         return View::render('index', [
             'content' => $f
         ]);

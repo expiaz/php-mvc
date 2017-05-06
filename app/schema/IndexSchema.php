@@ -2,24 +2,24 @@
 
 namespace App\Schema;
 
-use Core\Database\Orm\Schema\Table;
+use Core\Facade\Contracts\TableFacade;
 use Core\Mvc\Schema\Schema;
 
 class IndexSchema extends Schema {
 
     public function __construct(){
 
-        $table = new Table('index');
+        $table = TableFacade::create('index');
 
         $table->field('id')
             ->autoIncrement();
 
-        $table->field('name')
+        $table->field('affiche')
             ->type('varchar')
-             ->nullable();
+            ->default('mon n\'affiche');
 
-        $table->field('age')
-            ->type('int');
+        $table->field('mailing')
+            ->type('varchar');
 
         parent::__construct($table);
     }

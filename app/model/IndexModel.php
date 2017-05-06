@@ -6,7 +6,6 @@ use Core\Mvc\Model\Model;
 
 class IndexModel extends Model {
 
-    protected $id;
     private $affiche;
     private $mailing;
 
@@ -23,6 +22,7 @@ class IndexModel extends Model {
      */
     public function setAffiche($affiche)
     {
+        $this->setter('affiche', $affiche);
         $this->affiche = $affiche;
     }
 
@@ -39,6 +39,7 @@ class IndexModel extends Model {
      */
     public function setMailing($mailing)
     {
+        $this->setter('mailing', $mailing);
         $this->mailing = $mailing;
     }
 

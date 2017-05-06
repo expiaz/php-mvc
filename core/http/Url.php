@@ -8,7 +8,7 @@ final class Url{
     private $payload;
     private $url;
 
-    public function __construct($controller = 'index', $action = 'index', $payload = [])
+    public function __construct(string $controller = 'index', string $action = 'index', $payload = [])
     {
         $this->controller = $controller;
         $this->action = $action;

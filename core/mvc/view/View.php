@@ -37,7 +37,7 @@ abstract class View
         }
 
         $vars['connected'] = [
-            'link' => $container[Session::class]->exists('connected') ? (new Url('index', 'deconnexion'))->build() : (new Url('index', 'deconnexion'))->build(),
+            'link' => $container[Session::class]->exists('connected') ? (new Url('index', 'deconnexion'))->build() : (new Url('index', 'connexion'))->build(),
             'message' => $container[Session::class]->exists('connected') ? 'deconnexion' : 'connexion'
         ];
 

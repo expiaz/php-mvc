@@ -160,7 +160,7 @@ class Field implements Statementizable, Schematizable {
         $props = [];
         $props[] = $this->name;
         $props[] = $this->length ? "{$this->type}({$this->length})" : $this->type;
-        $props[] = $this->default ? $this->nullable ? "DEFAULT NULL" : "DEFAULT {$this->default}" : $this->nullable == false ? "NOT NULL" : NULL;
+        $props[] = $this->default ? $this->nullable ? "DEFAULT NULL" : "DEFAULT {$this->default}" : $this->nullable === true ? "NOT NULL" : NULL;
         $props[] = $this->autoIncrement ? "AUTO_INCREMENT" : NULL;
 
         $fieldDecalaration = implode(' ', array_filter($props, function($e){
@@ -172,29 +172,20 @@ class Field implements Statementizable, Schematizable {
 
     public function &schema() :array
     {
+
         $schema = [];
         $schema['name'] = $this->name;
         $schema['type'] = $this->type;
         $schema['formtype'] = $this->formType;
         $schema['length'] = $this->length;
         $schema['null'] = $this->nullable;
-        $schema['default'] = $this->default ?: $this->nullable ? 'NULL' : 'NOT NULL';
+        $schema['default'] = $this->default !== null ? $this->default : ($this->nullable ? 'NULL' : 'NOT NULL');
         $schema['auto'] = $this->autoIncrement;
         $schema['constraints'] = [];
         foreach ($this->constraints as $c)
             $schema['constraints'][] = $c->schema();
         foreach ($this->inlineConstraints as $ic)
             $schema['constraints'][] = ['type' => $ic];
-
-       /* $schema['constraints'] = array_map(
-            function(Constraint $e){
-                return $e->schema();
-            },
-            $this->constraints
-        );
-        $schema['constraints'] = array_merge($schema['constraints'], array_map(function($e){
-            return ['type' => $e];
-        }, $this->inlineConstraints));*/
 
         return $schema;
     }
