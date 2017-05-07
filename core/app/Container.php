@@ -10,22 +10,19 @@ use Core\Mvc\Schema\Schema;
 use Core\Mvc\Controller\Controller;
 use Core\Mvc\Model\Model;
 use Core\Mvc\Repository\Repository;
+use Core\Utils\Traits\MagicAccess as MagicAccessTrait;
+use Core\Utils\Interfaces\MagicAccess as MagicAccessInterface;
 
-class Container implements ArrayAccess {
+class Container implements ArrayAccess, MagicAccessInterface {
 
-    private $container;
+    use MagicAccessTrait;
 
-    public function __construct()
+    public function &initializeContainer()
     {
-        $this->container = [];
-        $this->container['container'] = $this;
-    }
+        $c = [];
+        $c['container'] = $this;
 
-    private function normalize(&$key){
-        if(is_array($key))
-            $key = (object) $key;
-        if(is_object($key))
-            $key = get_class($key);
+        return $c;
     }
 
     public function getServices(){
@@ -36,66 +33,16 @@ class Container implements ArrayAccess {
         return call_user_func($singleton, $this);
     }
 
-    public function factory(Closure $factory){
-
-    }
-
-    public function set($key, $value){
+    public function get(string $key){
         $this->normalize($key);
-        $this->container[(string) $key] = $value;
-    }
-
-    public function get($key){
-        $this->normalize($key);
-        if($this->exists($key)){
-            $value = $this->container[$key];
-            if($value instanceof Closure)
-                return call_user_func($value, $this);
-            return $value;
-        }
-        return $this->resolve($key);
-    }
-
-    public function delete($key){
-        $this->normalize($key);
-        if($this->exists($key))
-            unset($this->container[$key]);
-    }
-
-    public function exists($key){
-        $this->normalize($key);
-        return isset($this->container[$key]);
-    }
-
-    public function __set($key, $value){
-        $this->set($key, $value);
-    }
-
-    public function __get($key = null){
-        return $this->get($key);
-    }
-
-    public function offsetSet($offset, $value) {
-        if (is_null($offset)) {
+        if(! $this->exists($key))
             return;
+
+        if($this->container[$key] instanceof Closure){
+            return call_user_func($this->container[$key], $this);
         }
-        $this->set($offset, $value);
-    }
 
-    public function offsetExists($offset) {
-        return $this->exists($offset);
-    }
-
-    public function offsetUnset($offset) {
-        $this->delete($offset);
-    }
-
-    public function offsetGet($offset) {
-        return $this->get($offset);
-    }
-
-    public function make($service){
-        return $this->get($service);
+        return $this->container[$key];
     }
 
     public function resolve($key){

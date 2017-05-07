@@ -112,17 +112,17 @@ final class App implements ArrayAccess
          * Database
          */
         $this->container[Database::class] = function (Container $c):Database {
-            return new Database($c['config']['database']['dsn'], $c['config']['database']['user'], $c['config']['database']['password'], $c['config']['database']['options']);
+            return new Database($c->get(Config::class)->get('database')['dsn'], $c->get(Config::class)->get('database')['user'], $c->get(Config::class)->get('database')['password'], $c->get(Config::class)->get('database')['options']);
         };
         $this->container['database'] = function (Container $c):Database {
-            return $c[Database::class];
+            return $c->get(Database::class);
         };
 
         /*
          * Database Singleton
          */
         $this->container['database.singleton'] = $this->container->singleton(function (Container $c):Database {
-            return $c['database'];
+            return $c->get(Database::class);
         });
 
         /*
@@ -142,7 +142,7 @@ final class App implements ArrayAccess
             return new Router();
         });
         $this->container['router'] = function (Container $c):Router {
-            return $c[Router::class];
+            return $c->get(Router::class);
         };
 
         /*
@@ -169,8 +169,8 @@ final class App implements ArrayAccess
         $this->container[FormBuilder::class] = $this->container->singleton(function (Container $c):FormBuilder {
             return new FormBuilder();
         });
-        $this->container['form'] = function (Container $c):FormBuilder {
-            return $c[FormBuilder::class];
+        $this->container['formbuilder'] = function (Container $c):FormBuilder {
+            return $c->get(FormBuilder::class);
         };
 
 
@@ -213,11 +213,11 @@ final class App implements ArrayAccess
 
     public function offsetSet($offset, $value)
     {
-        return $this->container->offsetSet($offset, $value);
+        $this->container->offsetSet($offset, $value);
     }
 
     public function offsetUnset($offset)
     {
-        return $this->container->offsetUnset($offset);
+        $this->container->offsetUnset($offset);
     }
 }

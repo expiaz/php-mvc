@@ -12,4 +12,8 @@ require_once CORE . 'Autoloader.php';
 
 Autoloader::register();
 
-$app = Core\App::init('a');
+require_once 'core/Config.php';
+
+$a = new \Core\Config();
+
+var_dump($a->url);
