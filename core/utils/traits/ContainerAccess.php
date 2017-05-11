@@ -15,13 +15,13 @@ trait ContainerAccess{
         return [];
     }
 
-    public function beforeEach(){
+    public function beforeEach(string &$key){
         return true;
     }
 
     public function normalize(string &$key){
 
-        if(!$this->beforeEach())
+        if(!$this->beforeEach($key))
             return;
 
         if(is_array($key))
@@ -32,7 +32,7 @@ trait ContainerAccess{
 
     public function exists(string $key){
 
-        if(!$this->beforeEach())
+        if(!$this->beforeEach($key))
             return;
 
         $this->normalize($key);
@@ -41,7 +41,7 @@ trait ContainerAccess{
 
     public function set(string $key, $value){
 
-        if(!$this->beforeEach())
+        if(!$this->beforeEach($key))
             return;
 
         $this->normalize($key);
@@ -51,7 +51,7 @@ trait ContainerAccess{
 
     public function get(string $key){
 
-        if(!$this->beforeEach())
+        if(!$this->beforeEach($key))
             return;
 
         $this->normalize($key);
@@ -62,7 +62,7 @@ trait ContainerAccess{
 
     public function unset(string $key){
 
-        if(!$this->beforeEach())
+        if(!$this->beforeEach($key))
             return;
 
         $this->normalize($key);
@@ -73,10 +73,14 @@ trait ContainerAccess{
 
     public function reset(){
 
-        if(!$this->beforeEach())
+        if(!$this->beforeEach($key))
             return;
 
         $this->container = $this->initializeContainer();
+    }
+
+    public function getAll(){
+        return $this->container;
     }
 
 }

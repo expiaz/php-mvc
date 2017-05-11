@@ -41,7 +41,7 @@ abstract class View
             'message' => $container[Session::class]->exists('connected') ? 'deconnexion' : 'connexion'
         ];
 
-        $vars['connection_link'] = "<a href=\" {$vars['connected']['link']} \">{$vars['connected']['message']}</a>";
+        $vars['connection_link'] = "<a href=\"{$vars['connected']['link']}\">{$vars['connected']['message']}</a>";
 
         $vars['home'] = WEBROOT;
 

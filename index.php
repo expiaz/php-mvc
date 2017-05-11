@@ -12,4 +12,4 @@ require_once CORE . 'Autoloader.php';
 
 Autoloader::register();
 
-$app = Core\App::init($_GET['p'] ?? '');
+$app = Core\App::init($_SERVER['REDIRECT_URL'] ?? '');

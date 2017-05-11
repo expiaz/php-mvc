@@ -75,18 +75,6 @@ final class App implements ArrayAccess
         require_once CORE . 'shared' . DS . 'webConstants.php';
 
         /*
-         * Cache
-         */
-        /*
-        $this->container[Cache::class] = $this->container->singleton(function (Container $c):Cache {
-            return new Cache();
-        });
-        $this->container['cache'] = function (Container $c):Cache {
-            return $c[Cache::class];
-        };
-        */
-
-        /*
          * Cookie
          */
         $this->container[Cookie::class] = $this->container->singleton(function (Container $c):Cookie {
@@ -100,9 +88,7 @@ final class App implements ArrayAccess
          * Session
          */
         $this->container[Session::class] = $this->container->singleton(function (Container $c):Session {
-            $s = new Session();
-            $s->activate();
-            return $s;
+            return new Session();
         });
         $this->container['session'] = function (Container $c):Session {
             return $c[Session::class];
@@ -110,7 +96,7 @@ final class App implements ArrayAccess
 
         /*
          * Database
-         */
+
         $this->container[Database::class] = function (Container $c):Database {
             return new Database($c->get(Config::class)->get('database')['dsn'], $c->get(Config::class)->get('database')['user'], $c->get(Config::class)->get('database')['password'], $c->get(Config::class)->get('database')['options']);
         };
@@ -118,22 +104,10 @@ final class App implements ArrayAccess
             return $c->get(Database::class);
         };
 
-        /*
-         * Database Singleton
-         */
         $this->container['database.singleton'] = $this->container->singleton(function (Container $c):Database {
             return $c->get(Database::class);
         });
-
-        /*
-         * Query
-         */
-        $this->container[Query::class] = function (Container $c):Query {
-            return new Query(new Url());
-        };
-        $this->container['query'] = function (Container $c):Query {
-            return $c[Query::class];
-        };
+        */
 
         /*
          * Router
@@ -176,7 +150,7 @@ final class App implements ArrayAccess
 
         /*
          * Factories
-         */
+
         $this->container[LoaderFactory::class] = $this->container->singleton(function (Container $c):LoaderFactory{
             return new LoaderFactory($c);
         });
@@ -184,6 +158,8 @@ final class App implements ArrayAccess
         $this->container[RequestFactory::class] = $this->container->singleton(function (Container $c):RequestFactory{
             return new RequestFactory($c);
         });
+
+        */
 
         new AliasesLoader();
     }

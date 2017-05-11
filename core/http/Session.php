@@ -32,7 +32,7 @@ final class Session implements ArrayAccess, MagicAccessInterface {
         return $_SESSION;
     }
 
-    public function beforeEach()
+    public function beforeEach(string &$key)
     {
         return static::$on === true;
     }

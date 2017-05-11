@@ -72,7 +72,10 @@ class Route{
     }
 
     private function makeRoute(){
-        if($this->route == '*') return;
+        if($this->route == '*'){
+            $this->regex = '|^(.*)$|';
+            return;
+        }
 
         preg_match_all('/:(\w*)/',$this->route,$p,PREG_SET_ORDER);
         $this->param = array_map(function($e){
@@ -83,6 +86,7 @@ class Route{
     }
 
     public function match(string $route){
+
         if($this->route == '*'){
             return true;
         }
@@ -108,7 +112,6 @@ class Route{
                 $p[$this->param[$i]] = $parameters[$i+1];
             }
         }
-
 
         container(LoaderFactory::class)->create($this, new HttpParameterBag($p));
     }

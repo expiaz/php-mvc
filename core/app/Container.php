@@ -20,6 +20,7 @@ class Container implements ArrayAccess, MagicAccessInterface {
     public function &initializeContainer()
     {
         $c = [];
+        $c[Container::class] = $this;
         $c['container'] = $this;
 
         return $c;
@@ -35,23 +36,103 @@ class Container implements ArrayAccess, MagicAccessInterface {
 
     public function get(string $key){
         $this->normalize($key);
+
         if(! $this->exists($key))
-            return;
+            return $this->resolve($key);
 
         if($this->container[$key] instanceof Closure){
             return call_user_func($this->container[$key], $this);
         }
 
+        //TODO add invoke resolve
+
         return $this->container[$key];
     }
 
-    public function resolve($key){
+    public function resolve(string $key){
+
         $this->normalize($key);
 
+        if($this->exists($key)){
+            return $this->get($key);
+        }
+
+        if(preg_match('/App[\\\](Model|Controller|Schema|Repository)/',$key)){
+            return $this->resolveMvc($key);
+        }
+
+        try{
+            $reflection = new \ReflectionClass($key);
+        }
+        catch (\ReflectionException $e){
+            throw new \Exception("[Container::resolve] class {$e} does not exists");
+        }
+
+        if( ($constructorReflection = $reflection->getConstructor()) !== NULL){
+
+            $dependencies = [];
+
+            foreach ($constructorReflection->getParameters() as $parameterReflection){
+
+                if($parameterReflection->hasType()){
+                    $typeReflection = $parameterReflection->getType();
+                    if($typeReflection->isBuiltin()){
+                        if($parameterReflection->isDefaultValueAvailable()){
+                            $dependencies[] = $parameterReflection->getDefaultValue();
+                        }
+                        else if($typeReflection->allowsNull()){
+                            $dependencies[] = NULL;
+                        }
+                        else{
+                            throw new \Exception("Can't resolve {$key} argument {$parameterReflection->getName()} type {$typeReflection} on __construct");
+                        }
+                    }
+                    else{
+                        try {
+                            $dependencies[] = $this->resolve($typeReflection->__toString());
+                        }
+                        catch (\Exception $e){
+                            if($parameterReflection->isDefaultValueAvailable()){
+                                $dependencies[] = $parameterReflection->getDefaultValue();
+                            }
+                            else if($typeReflection->allowsNull()){
+                                $dependencies[] = NULL;
+                            }
+                            else{
+                                throw new \Exception("Can't resolve {$key} argument {$parameterReflection->getName()} type {$typeReflection} on __construct");
+                            }
+                        }
+                    }
+
+                }
+                else if($parameterReflection->isDefaultValueAvailable()){
+                    $dependencies[] = $parameterReflection->getDefaultValue();
+                }
+                else{
+                    throw new \Exception("Can't resolve {$key} argument {$parameterReflection->getName()} {$parameterReflection->getPosition()} on __construct");
+                }
+
+            }
+
+            $this->set($key, function (Container $c) use ($key, $dependencies) {
+                return new $key(... $dependencies);
+            });
+
+        }
+        else{
+            $this->set($key, function (Container $c) use ($key) {
+                return new $key();
+            });
+        }
+
+        return $this->get($key);
+    }
+
+    private function resolveMvc($key){
         if(!$this->exists($key)){
             $matches = [];
             if(!preg_match('/App[\\\](Model|Controller|Schema|Repository)/', $key, $matches))
-                throw new \Exception("can't resolve other class than base mvc app : {$key}");
+                throw new \Exception("[Container::resolveMvc] Can't resolve other class than base mvc app : {$key}");
 
             switch ($matches[1]){
                 case 'Model':

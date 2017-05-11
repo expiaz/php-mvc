@@ -23,32 +23,32 @@ class Request{
 
     public function getParameter($prop = null){
         if(is_null($prop))
-            return $this->parameters->getBag();
+            return $this->parameters;
         return $this->parameters[$prop];
     }
 
 
     public function getPost($prop = null){
         if(is_null($prop))
-            return $this->post->getBag();
+            return $this->post;
         return $this->post[$prop];
     }
 
     public function getGet($prop = null){
         if(is_null($prop))
-            return $this->get->getBag();
+            return $this->get;
         return $this->get[$prop];
     }
 
     public function getFiles($prop = null){
         if(is_null($prop))
-            return $this->files->getBag();
+            return $this->files;
         return $this->files[$prop];
     }
 
     public function getCookies($prop = null){
         if(is_null($prop))
-            return $this->cookies->getBag();
+            return $this->cookies;
         return $this->cookies[$prop];
     }
 

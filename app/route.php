@@ -1,13 +1,10 @@
 <?php
 
-use Core\Http\Router;
 
-$router = container(Router::class);
+use Core\Facade\Contracts\RouterFacade;
 
-//$router->default('index@default');
+RouterFacade::on('*', 'index@default');
 
-$router->on('/', 'index@index');
-$router->on('/:id', 'index@id');
-
-
-
+RouterFacade::get('/a', 'index@index');
+RouterFacade::get('*', 'index@allget');
+RouterFacade::post('*', 'index@allpost');

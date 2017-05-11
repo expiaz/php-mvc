@@ -3,6 +3,7 @@
 namespace Core\Database;
 
 
+use Core\Config;
 use Core\Utils\DataContainer;
 use PDO, PDOException;
 use PDOStatement;
@@ -12,10 +13,10 @@ final class Database{
 
     private $pdo;
 
-    public function __construct(string $dsn, string $user, string $pwd, array $opts)
+    public function __construct(Config $config)
     {
         try {
-            $this->pdo = new PDO($dsn, $user, $pwd, $opts);
+            $this->pdo = new PDO($config->get('database')['dsn'], $config->get('database')['user'], $config->get('database')['password'], $config->get('database')['options']);
         } catch (PDOException $e) {
             echo '[Database] Connexion échouée : ' . $e->getMessage();
             exit(1);
