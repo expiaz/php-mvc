@@ -3,8 +3,10 @@
 namespace Core\App;
 
 
+use Core\App;
 use Core\Factory\RequestFactory;
 use Core\Helper;
+use Core\Http\Request;
 use Core\Utils\HttpParameterBag;
 use Core\Http\Route\Route;
 
@@ -20,6 +22,8 @@ class Loader{
     private $parameters;
     private $request;
 
+    private $response;
+
     private $container;
 
     public function __construct(Container $container, Route $route, HttpParameterBag $parameters)
@@ -28,19 +32,25 @@ class Loader{
 
         $this->parameters = $parameters;
 
-        $this->request = $container[RequestFactory::class]->create($parameters);
+        $request = $container[RequestFactory::class]->create($parameters, $route->getMethod());
+        $this->request = $request;
+
+        $this->container->set(Request::class, $this->container->singleton(function (Container $c) use ($request){
+            return $request;
+        }));
 
         switch ($route->getType()){
             case Route::CLOSURE:
-                call_user_func_array($route->getHandler(), [$this->request, $parameters->getBag()]);
+                $this->response = call_user_func_array($route->getHandler(), [$this->request, $parameters->getBag()]);
                 break;
             case Route::CONTROLLER:
                 $this->controller = $route->getHandler()->getController();
                 $this->action = $route->getHandler()->getAction();
+                $this->load();
                 break;
         }
 
-        $this->load();
+        App::getInstance()->finish($this->response);
     }
 
     private function load(){
@@ -58,7 +68,7 @@ class Loader{
             $action = 'error404';
         }
 
-        $controller->{$action}($this->request, $this->parameters);
+        $this->response = $controller->{$action}($this->request, $this->parameters);
 
     }
 

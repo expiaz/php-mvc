@@ -23,6 +23,10 @@ class InlineConstraint implements Statementizable, Schematizable {
         $this->fields[] = $field;
     }
 
+    public function getFields(){
+        return $this->fields;
+    }
+
     public function statement()
     {
         $fields = '`' . implode('`, `', $this->fields) . '`';

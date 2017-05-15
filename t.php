@@ -1,19 +1,22 @@
 <?php
 
-use Core\Autoloader;
 
-define('DS', DIRECTORY_SEPARATOR);
-define('ROOT', __DIR__ . DS);
-define('CORE', ROOT . 'core' . DS);
+require_once 'core/app/ObBuffer.php';
 
-require_once CORE . 'shared' . DS . 'constants.php';
-require_once CORE . 'shared' . DS . 'helpers.php';
-require_once CORE . 'Autoloader.php';
+$buff = new \Core\App\ObBuffer();
 
-Autoloader::register();
+echo "bf view \n";
 
-require_once 'core/Config.php';
+ob_start();
 
-$a = new \Core\Config();
+$content = 'a';
 
-var_dump($a->url);
+require_once 'app/view/index.php';
+
+$view = "view : " . ob_get_clean() . "\n";
+
+echo "af view \n";
+
+echo $buff->unbufferize();
+
+echo $view;

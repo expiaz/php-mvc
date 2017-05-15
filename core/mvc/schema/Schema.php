@@ -20,11 +20,11 @@ abstract class Schema{
         $this->orm = new ORM(container(Database::class), $this);
     }
 
-    public function up(): void{
+    public function up(){
         $this->orm->create();
     }
 
-    public function down(): void{
+    public function down(){
         $this->orm->drop();
     }
 

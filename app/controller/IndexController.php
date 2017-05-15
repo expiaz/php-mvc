@@ -2,25 +2,23 @@
 
 namespace App\Controller;
 
-use Core\Form\Field;
-use Core\Form\Form;
 use Core\Http\Request;
 use Core\Mvc\Controller\Controller;
-use Core\Mvc\View\View;
 use Core\Utils\HttpParameterBag;
 
 class IndexController extends Controller{
 
     public function index(Request $r, HttpParameterBag $p){
-        echo 'index';
+        $f = \Form::create($this->getRepository()->getModel());
+        return \View::render('index', [
+            'content' => $f
+        ]);
     }
 
-    public function allget(Request $r, HttpParameterBag $p){
-        echo 'allget';
-    }
-
-    public function allpost(Request $r, HttpParameterBag $p){
-        echo 'allpost';
+    public function post(Request $r, HttpParameterBag $p){
+        return \View::render('index', [
+            'content' => 'handled'
+        ]);
     }
 
     public function default(Request $r, HttpParameterBag $p){
@@ -88,7 +86,8 @@ class IndexController extends Controller{
     }
 
     public function error404(Request $r, HttpParameterBag $p){
-        return View::render('error/404', [
+        \Response::withStatus(404);
+        return \View::render('error/404', [
             'error' => true,
             'message' => 'Bad request'
         ]);

@@ -21,11 +21,6 @@ abstract class Model{
     }
 
     public function __call($function, $args){
-        if(DEV){
-            echo '[Model] __call ' . get_class($this) . ' '  . $function . ' ';
-            print_r($args);
-            echo '<br>';
-        }
 
         $type = substr($function,0,3);
         $propName = strtolower(substr($function,3));

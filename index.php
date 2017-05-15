@@ -1,5 +1,13 @@
 <?php
 
+//TODO too much
+// - response + request http v
+// - orm constraints + form types
+// - view v
+// - router middleware and slug
+// - container resolve __invoke
+// - router resolve with Ns or Names for controllers + Invoke
+
 use Core\Autoloader;
 
 define('DS', DIRECTORY_SEPARATOR);

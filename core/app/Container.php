@@ -103,7 +103,6 @@ class Container implements ArrayAccess, MagicAccessInterface {
                             }
                         }
                     }
-
                 }
                 else if($parameterReflection->isDefaultValueAvailable()){
                     $dependencies[] = $parameterReflection->getDefaultValue();

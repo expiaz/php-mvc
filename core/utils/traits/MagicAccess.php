@@ -4,7 +4,7 @@ namespace Core\Utils\Traits;
 
 trait MagicAccess {
 
-    use ContainerAccess, ArrayAccess;
+    use CollectionAccess, ArrayAccess;
 
     public function __set(string $key, $value){
         $this->set($key, $value);
@@ -30,6 +30,11 @@ trait MagicAccess {
             return $this->set($method, $param[0]);
         }
         return $this->get($method);
+    }
+
+    public function __invoke($parameter)
+    {
+        return $this->get($parameter);
     }
 
 }

@@ -9,17 +9,16 @@ class IndexSchema extends Schema {
 
     public function __construct(){
 
-        $table = TableFacade::create('index');
+        $table = TableFacade::create('realisateur');
 
         $table->field('id')
-            ->autoIncrement();
+            ->autoIncrement()
+            ->manyToOne('film', 'id');
 
-        $table->field('affiche')
+        $table->field('name')
             ->type('varchar')
-            ->default('mon n\'affiche');
-
-        $table->field('mailing')
-            ->type('varchar');
+            ->length(255)
+            ->defaultFormSelection();
 
         parent::__construct($table);
     }

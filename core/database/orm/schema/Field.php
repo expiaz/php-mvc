@@ -13,6 +13,8 @@ class Field implements Statementizable, Schematizable {
     private $autoIncrement;
     private $formType;
 
+    private $selected; //is selected for the default form creation
+
     private $constraints;
     private $inlineConstraints;
 
@@ -123,6 +125,12 @@ class Field implements Statementizable, Schematizable {
         $constraint->check($check);
         $this->table->addConstraint($constraint);
         $this->constraints[] = $constraint;
+        return $this;
+    }
+
+    public function defaultFormSelection(){
+        $this->selected = true;
+        $this->table->defaultSelection($this);
         return $this;
     }
 

@@ -5,12 +5,13 @@ namespace Core\Form;
 use Closure;
 use Core\Database\Database;
 use Core\Database\Orm\Schema\Constraint;
+use Core\Database\Orm\Schema\Table;
 use Core\Facade\Contracts\DatabaseFacade;
 use Core\Mvc\Model\Model;
 
 final class FormBuilder{
 
-    public function &toFormSchema(&$baseSchema){
+    public function &toFormSchema(&$baseSchema, Table $table){
         $fields = [];
         foreach ($baseSchema['fields'] as $field){
             $description = [];
@@ -86,14 +87,22 @@ final class FormBuilder{
                     case Constraint::ONE_TO_ONE:
                     case Constraint::MANY_TO_ONE:
                     case Constraint::MANY_TO_MANY:
-                        $description['type'] = 'select';
-                        if($constraint['type'] == Constraint::MANY_TO_MANY) $description['multiple'] = true;
-                        else $description['multiple'] = false;
-                        $opts = DatabaseFacade::raw("SELECT {$constraint["field"]} AS option FROM {$constraint["table"]};");
-                        $description['options'] = [];
+                        $constraintField = [];
+                        $constraintField['required'] = true;
+                        $constraintField['name'] = $constraint['table'];
+                        $constraintField['value'] = null;
+                        $constraintField['maxlength'] = null;
+                        $constraintField['type'] = 'select';
+                        if($constraint['type'] == Constraint::MANY_TO_MANY) $constraintField['multiple'] = true;
+                        else $constraintField['multiple'] = false;
+                        $content = $table->getDefaultSelection()->getName();
+                        $sql = "SELECT {$constraint['field']} AS option, title AS content FROM {$constraint['table']};";
+                        $opts = DatabaseFacade::raw($sql);
+                        $constraintField['options'] = [];
                         foreach($opts as $o){
-                            $description['options'][] = ["value" => $o->option, "content" => $o->option, 'selected' => $description['value'] && $description['value'] == $o->option ? true : false];
+                            $constraintField['options'][] = ["value" => $o->option, "content" => $o->content, 'selected' => $description['value'] && $description['value'] == $o->option ? true : false];
                         }
+                        $fields[] = $constraintField;
                         break;
                 }
             }
@@ -105,11 +114,10 @@ final class FormBuilder{
 
     public function build(Model $model){
         $schema = $model->getSchema()->schema();
-        $fields = $this->toFormSchema($schema);
+        $fields = $this->toFormSchema($schema, $model->getSchema()->table());
         $fieldsCollection = [];
 
         foreach ($fields as $field){
-
             $f = new Field();
             $f->name($field['name']);
             $f->type($field['type']);

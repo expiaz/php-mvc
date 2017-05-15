@@ -7,21 +7,23 @@ final class Url{
     private $action;
     private $payload;
     private $url;
+    private $destination;
 
-    public function __construct(string $controller = 'index', string $action = 'index', $payload = [])
+    public function __construct(string $destination = '', array $payload = [])
     {
-        $this->controller = $controller;
-        $this->action = $action;
+        /*$this->controller = $controller;
+        $this->action = $action;*/
+        $this->destination = ltrim($destination, '/');
         $this->payload = $payload;
     }
 
-    public function setController($controller){
+    /*public function setController($controller){
         $this->controller = $controller;
     }
 
     public function setAction($action){
         $this->action = $action;
-    }
+    }*/
 
     public function setPayload($payload = []){
         $this->payload = $payload;
@@ -32,13 +34,13 @@ final class Url{
     }
 
 
-    public function getController(){
+    /*public function getController(){
         return $this->controller;
     }
 
     public function getAction(){
         return static::$_action;
-    }
+    }*/
 
     public function getPayload(){
         return $this->payload;
@@ -49,7 +51,7 @@ final class Url{
     }
 
     public function build(){
-        return $this->url = WEBROOT . $this->controller . '/' . $this->action . (count($this->payload) ? '&' . http_build_query($this->payload) : '');
+        return $this->url = WEBROOT . $this->destination . (count($this->payload) ? '&' . http_build_query($this->payload) : '');
     }
 
 

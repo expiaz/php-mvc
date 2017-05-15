@@ -2,6 +2,7 @@
 
 namespace Core\Mvc\View;
 
+use Core\App\Container;
 use Core\Database\Database;
 use Core\Http\Query;
 use Core\Http\Session;
@@ -17,14 +18,16 @@ use Core\Http\Url;
  *
  */
 
-abstract class View
+final class View
 {
 
-    static function render($viewPath, $vars)
+    public function __construct(Container $c)
     {
+        $this->container = $c;
+    }
 
-        $container = container();
-
+    function render($viewPath, $vars)
+    {
         $path = VIEW . trim($viewPath,'/') . '.php';
         if (!file_exists($path)) {
             $path = VIEW . 'index.php';
@@ -36,31 +39,31 @@ abstract class View
             $vars['title'] = 'title';
         }
 
-        $vars['connected'] = [
-            'link' => $container[Session::class]->exists('connected') ? (new Url('index', 'deconnexion'))->build() : (new Url('index', 'connexion'))->build(),
-            'message' => $container[Session::class]->exists('connected') ? 'deconnexion' : 'connexion'
+        /*$vars['connected'] = [
+            'link' => $this->container[Session::class]->exists('connected') ? (new Url('index', 'deconnexion'))->build() : (new Url('index', 'connexion'))->build(),
+            'message' => $this->container[Session::class]->exists('connected') ? 'deconnexion' : 'connexion'
         ];
 
-        $vars['connection_link'] = "<a href=\"{$vars['connected']['link']}\">{$vars['connected']['message']}</a>";
+        $vars['connection_link'] = "<a href=\"{$vars['connected']['link']}\">{$vars['connected']['message']}</a>";*/
 
         $vars['home'] = WEBROOT;
 
-        echo static::capture($path,$vars);
-
-        static::end();
+        return $this->capture($path,$vars);
     }
 
-    private static function capture($viewPath, $vars){
+    private function capture($viewPath, $vars){
+        $level = ob_get_level();
         ob_start();
         extract($vars, EXTR_SKIP);
         require_once LAYOUT . 'header.php';
         require_once($viewPath);
         require_once LAYOUT . 'footer.php';
-        return ob_get_clean();
-    }
-
-    private static function end(){
-        exit(0);
+        $content = ob_get_clean();
+        $newLevel = ob_get_level();
+        if($newLevel !== $level){
+            throw new \Exception("View::render ob_level fails expected $level got {$newLevel}");
+        }
+        return $content;
     }
 
 }

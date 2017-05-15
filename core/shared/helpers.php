@@ -19,3 +19,11 @@ if(! function_exists('container')){
     }
 
 }
+
+if(! function_exists('view')){
+
+    function view(string $viewPath, array $args = []){
+        return (\Core\App::make(\Core\Mvc\View\View::class))->render($viewPath, $args);
+    }
+
+}

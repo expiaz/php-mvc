@@ -7,6 +7,7 @@ class Table implements Statementizable, Schematizable {
     private $fields;
     private $prefix;
     private $name;
+    private $defaultSelection;
 
     private $constraints;
     private $pkConstraint;
@@ -67,6 +68,14 @@ class Table implements Statementizable, Schematizable {
 
     public function addConstraint(Constraint $constraint){
         $this->constraints[] = $constraint;
+    }
+
+    public function defaultSelection(Field $f){
+        $this->defaultSelection = $f;
+    }
+
+    public function getDefaultSelection():Field{
+        return $this->defaultSelection ?? $this->primaryKey->getFields()[0];
     }
 
 

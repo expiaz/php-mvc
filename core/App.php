@@ -3,6 +3,7 @@
 namespace Core;
 
 use ArrayAccess;
+use Core\App\ObBuffer;
 use Core\Facade\AliasesLoader;
 use Core\Factory\RequestFactory;
 use Core\App\Container;
@@ -12,9 +13,11 @@ use Core\Database\Database;
 use Core\Form\FormBuilder;
 use Core\Http\Cookie;
 use Core\Http\Query;
+use Core\Http\Response;
 use Core\Http\Router;
 use Core\Http\Session;
 use Core\Http\Url;
+use Core\Mvc\View\View;
 
 final class App implements ArrayAccess
 {
@@ -23,9 +26,12 @@ final class App implements ArrayAccess
 
     private $container;
 
+    private $bufferOutput;
+
     private function __construct($httpParameters)
     {
         static::$instance = $this;
+        //$this->bufferOutput = new ObBuffer();
         $this->container = new Container();
         $this->register();
         $this->launch($httpParameters);
@@ -147,6 +153,20 @@ final class App implements ArrayAccess
             return $c->get(FormBuilder::class);
         };
 
+        $this->container[View::class] = function (Container $c): View{
+            return new View($c);
+        };
+        $this->container['view'] = function (Container $c): View{
+            return $c->get(View::class);
+        };
+
+        $this->container[Response::class] = $this->container->singleton(function (Container $c): Response{
+            return new Response($_SERVER['SERVER_PROTOCOL']);
+        });
+        $this->container['response'] = function (Container $c): Response{
+            return $c->get(Response::class);
+        };
+
 
         /*
          * Factories
@@ -168,9 +188,43 @@ final class App implements ArrayAccess
         return static::getInstance()[$service];
     }
 
-    private function launch($httpParameters){
+    public function launch($httpParameters){
         require_once APP . 'route.php';
         new Dispatcher($this->container, $httpParameters);
+    }
+
+    public function finish($returnStatement = null){
+
+
+        $response = $this[Response::class];
+
+        if(! is_null($returnStatement) && (is_string($returnStatement) || method_exists($returnStatement, '__toString')) ){
+            $response->withBody((string) $returnStatement);
+        }
+
+        /*$debug = $this->bufferOutput->unbufferize();
+        if(DEV){
+            $response->write($debug);
+        }*/
+
+        if(! headers_sent()){
+            http_response_code($response->getStatusCode());
+
+            foreach ($response->getHeaders() as $header => $phrase){
+                header(sprintf('%s: %s', $header, $phrase), false);
+            }
+
+            $contentLength = $response->getHeader(Response::CONTENT_LENGTH);
+            $body = $response->getBody();
+            $content = substr($body, 0, $contentLength);
+            if($contentLength > 0 && strlen($content)){
+                echo $content;
+            }
+        }
+        else{
+            throw new \Exception("App::finish Headers already sent : \n<br/>" . print_r(headers_list()));
+        }
+        exit(0);
     }
 
     public function getContainer(): Container{
@@ -196,4 +250,10 @@ final class App implements ArrayAccess
     {
         $this->container->offsetUnset($offset);
     }
+
+    public function __invoke()
+    {
+        return $this->offsetGet(count(func_get_args()) ? func_get_args()[0] : App::class);
+    }
+
 }

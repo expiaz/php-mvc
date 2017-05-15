@@ -9,6 +9,7 @@ use Core\Factory\LoaderFactory;
 class Route{
 
     private $type;
+    private $method;
     private $route;
     private $param;
     private $regex;
@@ -19,15 +20,20 @@ class Route{
     const CLOSURE = 1;
     const CONTROLLER = 2;
 
-    public function __construct(string $route, $handler)
+    public function __construct(string $route, $handler, string $method)
     {
         $this->route = $route;
+        $this->method = $method;
         $this->handle($handler);
         $this->makeRoute();
     }
 
     public function getType(){
         return $this->type;
+    }
+
+    public function getMethod(){
+        return $this->method;
     }
 
     public function getRoute(){
@@ -38,13 +44,13 @@ class Route{
         return $this->regex;
     }
 
-    public function getHandler(): Handler{
+    public function getHandler(){
         return $this->handler;
     }
 
     private function handle(&$handler){
 
-        if($handler instanceof Closure){
+        if(is_callable($handler)){
             $this->handler = $handler;
             $this->type = static::CLOSURE;
             return;
@@ -96,6 +102,7 @@ class Route{
             return true;
         }
         return false;
+
     }
 
     public function apply(string $url = null){

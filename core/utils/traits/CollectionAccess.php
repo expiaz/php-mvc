@@ -2,7 +2,7 @@
 
 namespace Core\Utils\Traits;
 
-trait ContainerAccess{
+trait CollectionAccess{
 
     private $container;
 
@@ -49,7 +49,7 @@ trait ContainerAccess{
         $this->container[$key] = $value;
     }
 
-    public function get(string $key){
+    public function get(string $key, $default = null){
 
         if(!$this->beforeEach($key))
             return;
@@ -58,6 +58,8 @@ trait ContainerAccess{
         if($this->exists($key)){
             return $this->container[$key];
         }
+
+        return $default;
     }
 
     public function unset(string $key){

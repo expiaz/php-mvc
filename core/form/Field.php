@@ -199,11 +199,12 @@ class Field{
         if($this->required)
             $out .= " required";
         if($this->maxlength)
-            $out .= "cols=\"{$this->maxlength}\" rows=\"{$this->maxlength}\"";
+            $out .= " cols=\"10\" rows=\"5\"";
         $out .= "/>";
         if($this->value)
             $out .= $this->value;
         $out .= "</textarea>";
+        return $out;
     }
 
     private function buildBoolean(){

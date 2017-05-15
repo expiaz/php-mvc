@@ -43,8 +43,10 @@ final class Dispatcher{
     private function dispatch(){
 
         if($this->container[Router::class]->apply($this->url) === false){
-            $this->container[LoaderFactory::class]->create(new Route('/', 'index@error404'), new HttpParameterBag());
+            $this->container[LoaderFactory::class]->create(new Route('/', 'index@error404', Request::GET), new HttpParameterBag());
         }
+
+
 
     }
 
@@ -92,10 +94,6 @@ final class Dispatcher{
         Query::setUrl($this->_url);
         Query::setController($controllerNs);
 
-        if(DEV) {
-            echo "[Dispatcher::load] controller = {$controller}, action = {$action}, param = ";
-            print_r($param);
-        }
         //$controllerClass->$action($param, $http);
         call_user_func_array([$controllerClass,$action],array_merge([$request],$param));
     }

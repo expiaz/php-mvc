@@ -2,9 +2,14 @@
 
 
 use Core\Facade\Contracts\RouterFacade;
+use Core\Facade\Contracts\UrlFacade;
 
-RouterFacade::on('*', 'index@default');
+RouterFacade::get('/', 'index@index');
 
-RouterFacade::get('/a', 'index@index');
-RouterFacade::get('*', 'index@allget');
-RouterFacade::post('*', 'index@allpost');
+RouterFacade::post('/', 'index@post');
+
+RouterFacade::get('/redirect-me', function ($r, $p){
+    RouterFacade::redirect(UrlFacade::create('/index', ['a' => 2]));
+});
+
+
