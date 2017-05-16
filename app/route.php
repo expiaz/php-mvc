@@ -21,7 +21,8 @@ RouterFacade::use(function ($next){
 */
 
 
-RouterFacade::get('/', 'index@index')->use('index@authMiddleware');
+RouterFacade::get('/', 'index@index')
+    ->use('index@authMiddleware');
 
 RouterFacade::get('/auth', 'index@auth');
 RouterFacade::post('/auth', 'index@auth');

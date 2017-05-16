@@ -54,5 +54,10 @@ final class Url{
         return $this->url = WEBROOT . $this->destination . (count($this->payload) ? '&' . http_build_query($this->payload) : '');
     }
 
+    public function __toString()
+    {
+        return $this->build();
+    }
+
 
 }

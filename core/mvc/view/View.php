@@ -5,6 +5,7 @@ namespace Core\Mvc\View;
 use Core\App\Container;
 use Core\Database\Database;
 use Core\Http\Query;
+use Core\Http\Request;
 use Core\Http\Session;
 use Core\Http\Url;
 
@@ -26,7 +27,7 @@ final class View
         $this->container = $c;
     }
 
-    function render($viewPath, $vars)
+    function render(string $viewPath, array &$vars)
     {
         $path = VIEW . trim($viewPath,'/') . '.php';
         if (!file_exists($path)) {
@@ -36,7 +37,7 @@ final class View
             $vars['error'] = false;
         }
         if(!isset($vars['title'])){
-            $vars['title'] = 'title';
+            $vars['title'] = \Request::getUrl();
         }
 
         /*$vars['connected'] = [
@@ -51,7 +52,7 @@ final class View
         return $this->capture($path,$vars);
     }
 
-    private function capture($viewPath, $vars){
+    private function capture(string $viewPath, array &$vars){
         $level = ob_get_level();
         ob_start();
         extract($vars, EXTR_SKIP);

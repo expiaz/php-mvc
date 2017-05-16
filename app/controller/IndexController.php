@@ -26,6 +26,8 @@ class IndexController extends Controller{
     public function auth(Request $r){
         $f = new Form();
 
+        $f->action(\Url::create('/auth'));
+
         $f->field((new Field())
             ->name('login')
             ->required()

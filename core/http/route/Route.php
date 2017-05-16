@@ -68,6 +68,7 @@ class Route extends RouterCallee {
     }
 
     public function use($middleware){
+        /*
         $middlewareObject = new Middleware($middleware);
 
         if(! is_null($this->middleware)){
@@ -77,6 +78,11 @@ class Route extends RouterCallee {
 
         $middlewareObject->setNext($this);
         $this->middleware = $middlewareObject;
+        */
+        $middlewareObject = new Middleware($middleware);
+        $this->middlewaresStack[] = $middlewareObject;
+
+        return $this;
     }
 
     public function match(string $route){
@@ -113,10 +119,20 @@ class Route extends RouterCallee {
     }
 
     public function applyMiddlewares(Request $req, Response $rep){
-        if(is_null($this->middleware)){
+        if(count($this->middlewaresStack) == 0){
             return $this->apply($req, $rep);
         }
-        return $this->middleware->apply($req, $rep);
+
+        $prev = null;
+        $first = null;
+        foreach ($this->middlewaresStack as $middleware){
+            if(is_null($prev)) $first = $middleware;
+            else $prev->setNext($middleware);
+            $prev = $middleware;
+        }
+        $prev->setNext($this);
+
+        return $first->apply($req, $rep);
     }
 
 }

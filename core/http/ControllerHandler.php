@@ -14,7 +14,7 @@ class ControllerHandler extends Handler{
 
     public function __construct(string $controller = 'index', string $action = 'index')
     {
-        parent::__construct($this->controller . '@' . $this->action);
+        parent::__construct($controller . '@' . $action);
         $this->type = static::CONTROLLER;
         $this->controller = $controller;
         $this->action = $action;

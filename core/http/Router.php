@@ -138,7 +138,7 @@ final class Router{
             return $this->defaults[Request::ALL];
         }
 
-        $defaultRoute = new Route('/', 'index@error404', $_SERVER['REQUEST_METHOD']);
+        $defaultRoute = new Route('/', 'index@error404', $requestMethod);
         if(! is_null($this->middlewareForAll)){
             $defaultRoute->use($this->middlewareForAll);
         }

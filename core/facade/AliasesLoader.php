@@ -52,6 +52,10 @@ class AliasesLoader{
 
         if(! isset($this->resolvedAliases[$alias])){
             $this->resolvedAliases[$alias] = static::getAliases()[$alias];
+
+            if(class_exists($alias))
+                throw new \Exception("[AliasesLoader::load] $alias : class already exists");
+
             class_alias($this->resolvedAliases[$alias], $alias);
             return class_exists($this->resolvedAliases[$alias]) ? true : Autoloader::autoload($this->resolvedAliases[$alias]);
         }

@@ -19,7 +19,7 @@ class Middleware extends RouterCallee {
 
     public function setNext($next){
         $this->next = function (Request $request, Response $response) use ($next){
-            $next->apply($request, $response);
+            return $next->apply($request, $response);
         };
     }
 

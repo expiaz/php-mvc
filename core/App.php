@@ -195,7 +195,7 @@ final class App implements ArrayAccess
         $response = $this[Response::class];
 
         if(! is_null($returnStatement) && (is_string($returnStatement) || method_exists($returnStatement, '__toString')) ){
-            $response->withBody((string) $returnStatement);
+            $response->write((string) $returnStatement);
         }
 
         /*$debug = $this->bufferOutput->unbufferize();
