@@ -123,7 +123,7 @@ class Form{
     }
 
     public function handleRequest(Request $request){
-        if(!is_null($this->entity)){
+        /*if(!is_null($this->entity)){
             $this->container = $this->entity;
         }
         else{
@@ -143,7 +143,8 @@ class Form{
             $this->bindInputEntry($field,$entry);
         }
 
-        $this->isSubmitted = true;
+        $this->isSubmitted = true;*/
+
     }
 
     public function isSubmitted(){

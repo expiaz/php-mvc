@@ -4,21 +4,22 @@ namespace Core\App;
 
 class Handler{
 
-    private $controller;
-    private $action;
+    const CONTROLLER = 1;
+    const CLOSURE = 2;
 
-    public function __construct(string $controller, string $action)
+    protected $callable;
+
+    public function __construct($ToHandle)
     {
-        $this->controller = $controller;
-        $this->action = $action;
+        $this->callable = $ToHandle;
     }
 
-    public function getController(){
-        return $this->controller;
+    public function getHandled(){
+        return $this->callable;
     }
 
-    public function getAction(){
-        return $this->action;
+    public function trigger(... $args){
+        return call_user_func_array($args);
     }
 
 }

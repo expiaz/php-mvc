@@ -8,7 +8,9 @@ use Core\Http\Route\Route;
 final class Router{
 
     private $routes;
-    private $default;
+    private $defaults;
+
+    private $middlewareForAll;
 
     public function __construct()
     {
@@ -19,8 +21,8 @@ final class Router{
             Request::DELETE => [],
             Request::ALL => []
         ];
-
-        $this->default = [
+        $this->middlewareForAll = null;
+        $this->defaults = [
             Request::GET => NULL,
             Request::POST => NULL,
             Request::PUT => NULL,
@@ -33,7 +35,16 @@ final class Router{
 
     public function redirect(Url $url){
         ResponseFacade::withRedirect($url->build());
-        //header('Location: ' . $url->build());
+    }
+
+    public function use($handler){
+        $this->middlewareForAll = $handler;
+        foreach ($this->routes as $route){
+            $route->use($handler);
+        }
+        foreach ($this->defaults as $defaultsRoute){
+            $defaultsRoute->use($handler);
+        }
     }
 
     public function on(string $route, $handler){
@@ -57,7 +68,7 @@ final class Router{
     }
 
 
-    private function addRoute(string $method, string $route, $handler){
+    private function addRoute(string $method, string $route, $handler):Route{
 
         if($route === '*'){
             return $this->default($method, $handler);
@@ -65,34 +76,35 @@ final class Router{
 
         $route = $route === '/' ? $route : trim($route,'/');
 
-        if($this->isDefined($route, $method)){
-            return;
+        if($alreadyDefined = $this->isDefined($route, $method)){
+            return $alreadyDefined;
         }
 
         $routeObject = new Route($route, $handler, $method);
 
         $this->routes[$method][] = $routeObject;
 
-        foreach ($this->routes as $type => $route){
-            usort($this->routes[$type], function(Route $a, Route $b){
-                return $b->getRegex() <=> $a->getRegex();
-            });
+        usort($this->routes[$method], function(Route $a, Route $b){
+            return $b->getRegex() <=> $a->getRegex();
+        });
+
+        if(! is_null($this->middlewareForAll)){
+            $routeObject->use($this->middlewareForAll);
         }
 
         return $routeObject;
     }
 
     private function default(string $method, $handler){
-        if(!$this->default[$method] instanceof Route){
-            $this->default[$method] = new Route('*', $handler, Request::ALL);
+        if(!$this->defaults[$method] instanceof Route){
+            $this->defaults[$method] = new Route('*', $handler, Request::ALL);
         }
-        return $this->default[$method];
+        return $this->defaults[$method];
     }
 
-    public function apply(string $route){
+    public function apply(string $route, $requestMethod): Route{
 
-
-        $method = $this->resolveRequestMethod();
+        $method = $this->resolveRequestMethod($requestMethod);
 
         if(empty($route)){
             $route = '/';
@@ -103,43 +115,49 @@ final class Router{
 
         foreach ($this->routes[$method] as $r){
             if($r->match($route)){
-                $r->apply();
-                return true;
+                return $r;
             }
         }
 
-        //default route for ALL $route->$method('*', ...)
-        if($this->default[$method] instanceof Route){
-            $this->default[$method]->apply($route);
-            return true;
+        //routes for Request::ALL => $router->on('route', ....);
+        foreach ($this->routes[Request::ALL] as $r){
+            if($r->match($route)){
+                $r->setMethod($requestMethod);
+                return $r;
+            }
         }
 
-        //default route for ALL $route->on('*', ...) or $route->default()
-        if($this->default[Request::ALL] instanceof Route){
-            $this->default[Request::ALL]->apply($route);
-            return true;
+        //default route for ALL $router->$method('*', ...)
+        if($this->defaults[$method] instanceof Route){
+            return $this->defaults[$method];
         }
 
-        return false;
+        //default route for ALL $router->on('*', ...) or $route->defaults(...)
+        if($this->defaults[Request::ALL] instanceof Route){
+            $this->defaults[Request::ALL]->setMethod($requestMethod);
+            return $this->defaults[Request::ALL];
+        }
+
+        $defaultRoute = new Route('/', 'index@error404', $_SERVER['REQUEST_METHOD']);
+        if(! is_null($this->middlewareForAll)){
+            $defaultRoute->use($this->middlewareForAll);
+        }
+        return $defaultRoute;
     }
 
     private function isDefined($route, $type){
         foreach ($this->routes[$type] as $r){
             if($route === $r->getRoute()){
-                return true;
+                return $r;
             }
         }
 
         return false;
     }
 
-    private function isClosure($t) {
-        return is_object($t);
-    }
-
-    private function resolveRequestMethod()
+    private function resolveRequestMethod($method)
     {
-        $methodName = $_SERVER['REQUEST_METHOD'];
+        $methodName = $method;
 
         switch ($methodName){
             case Request::GET:

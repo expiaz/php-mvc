@@ -153,18 +153,14 @@ final class App implements ArrayAccess
             return $c->get(FormBuilder::class);
         };
 
+        /*
+         * View
+         */
         $this->container[View::class] = function (Container $c): View{
             return new View($c);
         };
         $this->container['view'] = function (Container $c): View{
             return $c->get(View::class);
-        };
-
-        $this->container[Response::class] = $this->container->singleton(function (Container $c): Response{
-            return new Response($_SERVER['SERVER_PROTOCOL']);
-        });
-        $this->container['response'] = function (Container $c): Response{
-            return $c->get(Response::class);
         };
 
 
@@ -190,7 +186,7 @@ final class App implements ArrayAccess
 
     public function launch($httpParameters){
         require_once APP . 'route.php';
-        new Dispatcher($this->container, $httpParameters);
+        $this->finish((new Dispatcher($this->container, $httpParameters))->dispatch());
     }
 
     public function finish($returnStatement = null){

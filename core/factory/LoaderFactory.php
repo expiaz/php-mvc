@@ -8,9 +8,9 @@ use Core\Http\Route\Route;
 
 class LoaderFactory extends Factory{
 
-    public function create(Route $route, HttpParameterBag $parameters)
+    public function create(Route $route, string $url)
     {
-        return new Loader($this->getContainer(), $route, $parameters);
+        return new Loader($this->getContainer(), $route, $url);
     }
 
 }

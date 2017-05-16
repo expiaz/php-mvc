@@ -85,8 +85,8 @@ abstract class Facade{
             if($name === 'create'){
                 return static::loadClass($arguments);
             }
-
-            throw new \Exception(get_called_class() . " {get_class($instance)} does not define a function named {$name}");
+            $klass = get_class($instance);
+            throw new \Exception(get_called_class() . " {$klass} does not define a function named {$name}");
         }
 
         return $instance->{$name}(... $arguments);

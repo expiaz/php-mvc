@@ -2,34 +2,39 @@
 
 namespace Core\Http\Route;
 
+use Core\App;
+use Core\Http\Middleware;
+use Core\Http\Request;
+use Core\Http\RequestScheme;
+use Core\Http\Response;
+use Core\Http\RouterCallee;
 use Core\Utils\HttpParameterBag;
 use Core\App\Handler;
 use Core\Factory\LoaderFactory;
 
-class Route{
+class Route extends RouterCallee {
 
-    private $type;
+    private $url;
     private $method;
     private $route;
     private $param;
     private $regex;
-    private $handler;
 
-    private $url;
-
-    const CLOSURE = 1;
-    const CONTROLLER = 2;
+    private $middlewaresStack;
+    private $middleware;
 
     public function __construct(string $route, $handler, string $method)
     {
+        parent::__construct($handler);
         $this->route = $route;
         $this->method = $method;
-        $this->handle($handler);
+        $this->middlewaresStack = [];
+        $this->middleware = null;
         $this->makeRoute();
     }
 
-    public function getType(){
-        return $this->type;
+    public function setMethod($method){
+        $this->method = $method;
     }
 
     public function getMethod(){
@@ -44,37 +49,8 @@ class Route{
         return $this->regex;
     }
 
-    public function getHandler(){
-        return $this->handler;
-    }
-
-    private function handle(&$handler){
-
-        if(is_callable($handler)){
-            $this->handler = $handler;
-            $this->type = static::CLOSURE;
-            return;
-        }
-
-        if(is_array($handler)){
-            $this->type = static::CONTROLLER;
-            $this->handler = new Handler($handler['controller'] ?? 'index', $handler['action'] ?? 'index');
-            return;
-        }
-
-        $i = strpos($handler, '@');
-        if($i === -1){
-            $controller = $handler;
-            $action = 'index';
-        }
-        else{
-            $controller = substr($handler,0,$i);
-            $action = substr($handler,$i+1);
-        }
-
-        $this->type = static::CONTROLLER;
-        $this->handler = new Handler($controller, $action);
-
+    public function getUrl(){
+        return $this->url;
     }
 
     private function makeRoute(){
@@ -91,6 +67,18 @@ class Route{
         $this->regex = '|^' . preg_replace('/:([^\/]*)/','([^\/]*)',$regex) . '$|';
     }
 
+    public function use($middleware){
+        $middlewareObject = new Middleware($middleware);
+
+        if(! is_null($this->middleware)){
+            $this->middleware->setNext($middlewareObject);
+            $this->middlewaresStack[] = $this->middleware;
+        }
+
+        $middlewareObject->setNext($this);
+        $this->middleware = $middlewareObject;
+    }
+
     public function match(string $route){
 
         if($this->route == '*'){
@@ -105,22 +93,30 @@ class Route{
 
     }
 
-    public function apply(string $url = null){
+    public function &applyArguments(string $url){
 
-        if(!is_null($url))
+        if(! is_null($url))
             $this->url = $url;
 
-        if($this->route == '*')
-            return container(LoaderFactory::class)->create($this, new HttpParameterBag(explode('/',$this->url)));
-
         $p = [];
+
+        if($this->route == '*')
+            return $p;
+
         if(preg_match($this->regex,$this->url,$parameters)){
             for($i = 0; $i < count($this->param); $i++){
                 $p[$this->param[$i]] = $parameters[$i+1];
             }
         }
 
-        container(LoaderFactory::class)->create($this, new HttpParameterBag($p));
+        return $p;
+    }
+
+    public function applyMiddlewares(Request $req, Response $rep){
+        if(is_null($this->middleware)){
+            return $this->apply($req, $rep);
+        }
+        return $this->middleware->apply($req, $rep);
     }
 
 }

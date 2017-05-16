@@ -7,6 +7,7 @@
 // - router middleware and slug
 // - container resolve __invoke
 // - router resolve with Ns or Names for controllers + Invoke
+// - Auth + Guard
 
 use Core\Autoloader;
 

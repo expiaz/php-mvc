@@ -3,6 +3,7 @@ namespace Core\Mvc\Controller;
 
 use Core\App\Container;
 use Core\Http\Request;
+use Core\Http\Response;
 use Core\Mvc\Repository\Repository;
 use Core\Utils\HttpParameterBag;
 
@@ -25,6 +26,6 @@ abstract class Controller{
         return $this->container;
     }
 
-    public abstract function index(Request $request, HttpParameterBag $parameters);
+    public abstract function index(Request $request, Response $response);
 
 }
