@@ -2,20 +2,20 @@
 namespace Core\Mvc\Model;
 
 use Core\Database\Orm\Schema\Table;
-use Core\Mvc\Repository\Repository;
 use Core\Mvc\Schema\Schema;
 
 abstract class Model{
 
     private $_modified = [];
+
     protected $id;
     protected $schema;
-    protected $repository;
     protected $table;
+
+    private $hydrated;
 
     public function __construct(Schema $schema)
     {
-        //TODO: replace locator to dependency injections
         $this->schema = $schema;
         $this->table = $schema->table();
     }
@@ -43,12 +43,24 @@ abstract class Model{
                     break;
             }
         }
+
+        return null;
     }
 
     protected function setter($k, $v){
-        if($v !== $this->{'get' . ucfirst($k)}()){
+        if(! $this->hydrated)
+            return;
+
+        $propName = ucfirst($k);
+        $propValue = $this->{"get{$propName}"}();
+
+        if( $v !== $propValue ){
             $this->_modified[] = $k;
         }
+    }
+
+    public function isReady(){
+        $this->hydrated = true;
     }
 
     public function getId(){
@@ -57,7 +69,7 @@ abstract class Model{
 
     public function setId($id){
         $this->setter('id', $id);
-        return $this->id = $id;
+        $this->id = $id;
     }
 
     public function getSchema(): Schema{

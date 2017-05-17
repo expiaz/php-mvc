@@ -4,6 +4,7 @@ namespace Core\Form;
 
 use Core\Http\Request;
 use Core\Mvc\Model\Model;
+use Core\Utils\DataContainer;
 
 class Form{
 
@@ -14,11 +15,11 @@ class Form{
     private $action;
     private $method;
     private $hasSubmitButton;
-    private $entity;
-    private $container;
     private $isSubmitted;
 
-    public function __construct(array &$fieldCollection = [], Model $entity = null)
+    private $model;
+
+    public function __construct(array &$fieldCollection = [], Model $model = null)
     {
         $this->id = null;
         $this->class = null;
@@ -27,15 +28,16 @@ class Form{
         $this->hasSubmitButton = false;
         $this->action = '';
         $this->fields = [];
-        $this->entity = $entity;
+        $this->model = $model ? $model : new DataContainer();
         $this->isSubmitted = false;
 
-        foreach ($fieldCollection as $field)
+        foreach ($fieldCollection as $field){
             $this->field($field);
+        }
     }
 
-    public function field(Field $field){
-
+    public function field(Field $field): Form
+    {
         if($field->type === 'submit')
             $this->hasSubmitButton = true;
 
@@ -43,64 +45,80 @@ class Form{
         return $this;
     }
 
-    public function class($class){
+    public function class(string $class): Form
+    {
         $this->class = $class;
         return $this;
     }
 
-    public function id($id){
+    public function id(string $id): Form
+    {
         $this->id = $id;
         return $this;
     }
 
-    public function enctype($enctype){
+    public function enctype(string $enctype): Form
+    {
         switch($enctype){
             case 'file':
-                $this->enctype = "multipart/form-data";
+                $this->enctype = 'multipart/form-data';
                 break;
             default:
-                $this->enctype = "multipart/form-data";
+                $this->enctype = 'multipart/form-data';
                 break;
         }
         return $this;
     }
 
-    public function action($action){
+    public function action(string $action): Form
+    {
         $this->action = $action;
         return $this;
     }
 
-    public function method($method){
+    public function method(string $method): Form
+    {
         $this->method = $method;
         return $this;
     }
 
-    public function build(){
+    public function build(): string
+    {
         $out = '<form';
-        if($this->method)
+
+        if(! is_null($this->method)){
             $out .= " method=\"{$this->method}\"";
-        else
+        } else {
             $out .= " method=\"POST\"";
-        if($this->action)
+        }
+
+        if(! is_null($this->action)){
             $out .= " action=\"{$this->action}\"";
-        else
+        } else {
             $out .= " action=\"\"";
-        if($this->enctype)
+        }
+
+        if(! is_null($this->enctype)){
             $out .= " enctype=\"{$this->enctype}\"";
-        if($this->class){
+        }
+
+        if(! is_null($this->class)){
             $out .= " class=\"{$this->class}\"";
         }
-        if($this->id){
+
+        if(! is_null($this->id)){
             $out .= " id=\"{$this->id}\"";
         }
+
         $out .= ">";
 
-        if(!$this->hasSubmitButton)
+        if(!$this->hasSubmitButton){
             $this->field((new Field())->type('submit')->name('submit')->value('submit'));
+        }
 
         $out .= implode('<br/>', array_map(function(Field $f){
             return $f->create();
-        }, $this->fields));
+        }, $this->fields) );
 
         $out .= "</form>";
         return $out;
@@ -112,47 +130,63 @@ class Form{
         return $this->build();
     }
 
-    private function bindInputEntry($input, $entry){
-        switch($input->type){
+    private function bindInputEntry(Field $input, $entry)
+    {
+        switch($input->getType()){
             case 'submit':
                 break;
             default:
-                $this->container->{"set" . ucfirst(strtolower($input->name))}($entry);
+                $fieldName = ucfirst(strtolower($input->getName()));
+                $actualValue = $this->model->{"get{$fieldName}"}();
+                if($actualValue === $entry)
+                    return;
+
+                $this->model->{"set{$fieldName}"}($entry);
+                $input->value($entry);
                 break;
         }
     }
 
-    public function handleRequest(Request $request){
-        /*if(!is_null($this->entity)){
-            $this->container = $this->entity;
+    public function handleRequest(Request $request)
+    {
+        $method = strtolower($this->method);
+        switch ($method){
+            case 'get':
+                $payload = $request->getGet();
+                break;
+            case 'post':
+                $payload = $request->getPost();
+                break;
+            default:
+                throw new \Exception("[Form::handleRequest] {$method} is not a form method");
         }
-        else{
-            $this->container = new DataContainer();
-        }
-
-        $method = "get" . ucfirst(strtolower($this->method));
 
         foreach ($this->fields as $field) {
-            $entry = $request->$method($field->name);
+            $entry = $payload[$field->getName()];
 
-            if(!$field->validateEntry($entry)){
+            if(! $field->validateEntry($entry)){
                 $this->isSubmitted = false;
                 return;
             }
+        }
 
+        foreach ($this->fields as $field){
+            $entry = $payload[$field->getName()];
             $this->bindInputEntry($field,$entry);
         }
 
-        $this->isSubmitted = true;*/
+        $this->isSubmitted = true;
 
     }
 
-    public function isSubmitted(){
+    public function isSubmitted(): bool
+    {
         return $this->isSubmitted;
     }
 
-    public function getData(){
-        return $this->container;
+    public function getData()
+    {
+        return $this->model;
     }
 
 }

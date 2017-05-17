@@ -11,7 +11,10 @@ use Core\Mvc\Model\Model;
 
 final class FormBuilder{
 
-    public function &toFormSchema(&$baseSchema, Table $table){
+    public function &getFormSchema(Table $table){
+
+        $baseSchema = $table->schema();
+
         $fields = [];
         foreach ($baseSchema['fields'] as $field){
             $description = [];
@@ -87,22 +90,25 @@ final class FormBuilder{
                     case Constraint::ONE_TO_ONE:
                     case Constraint::MANY_TO_ONE:
                     case Constraint::MANY_TO_MANY:
-                        $constraintField = [];
-                        $constraintField['required'] = true;
-                        $constraintField['name'] = $constraint['table'];
-                        $constraintField['value'] = null;
-                        $constraintField['maxlength'] = null;
-                        $constraintField['type'] = 'select';
-                        if($constraint['type'] == Constraint::MANY_TO_MANY) $constraintField['multiple'] = true;
-                        else $constraintField['multiple'] = false;
-                        $content = $table->getDefaultSelection()->getName();
-                        $sql = "SELECT {$constraint['field']} AS option, title AS content FROM {$constraint['table']};";
+                        $description['required'] = true;
+                        $description['name'] = $constraint['table'];
+                        $description['value'] = null;
+                        $description['maxlength'] = null;
+                        $description['type'] = 'select';
+                        if($constraint['type'] == Constraint::MANY_TO_MANY || $constraint['type'] == Constraint::ONE_TO_MANY) $description['multiple'] = true;
+                        else $description['multiple'] = false;
+                        $content = $constraint['form'] ?? $constraint['field'];
+                        $sql = "SELECT {$constraint['field']} AS option, {$content} AS content FROM {$constraint['table']};";
                         $opts = DatabaseFacade::raw($sql);
-                        $constraintField['options'] = [];
+                        $description['options'] = [];
                         foreach($opts as $o){
-                            $constraintField['options'][] = ["value" => $o->option, "content" => $o->content, 'selected' => $description['value'] && $description['value'] == $o->option ? true : false];
+                            if($description['value'] === $o->option){
+                                $isSelected = true;
+                            } else{
+                                $isSelected = false;
+                            }
+                            $description['options'][] = ["value" => $o->option, "content" => $o->content, 'selected' => $isSelected];
                         }
-                        $fields[] = $constraintField;
                         break;
                 }
             }
@@ -112,9 +118,9 @@ final class FormBuilder{
         return $fields;
     }
 
-    public function build(Model $model){
-        $schema = $model->getSchema()->schema();
-        $fields = $this->toFormSchema($schema, $model->getSchema()->table());
+    public function build(Model $model)
+    {
+        $fields = $this->getFormSchema($model->getSchema()->table());
         $fieldsCollection = [];
 
         foreach ($fields as $field){
@@ -123,19 +129,26 @@ final class FormBuilder{
             $f->type($field['type']);
             $f->class($field['name']);
             $f->id($field['name']);
+
             if($field['required'])
                 $f->required();
-            if(!is_null($field['value']))
+
+            if(! is_null($field['value']))
                 $f->value($field['value']);
+
             if(!is_null($field['maxlength']))
                 $f->maxlength($field['maxlength']);
+
             if(isset($field['multiple']) && $field['multiple'])
                 $f->multiple();
+
             if(isset($field['options']) && is_array($field['options']))
                 foreach ($field['options'] as $option)
                     $f->option($option['value'], $option['content'], $option['selected']);
+
             $f->label();
             $f->placeholder($field['name']);
+
             $fieldsCollection[$field['name']] = $f;
         }
         $fieldsCollection[array_keys($fieldsCollection)[0]]->focus();
@@ -143,9 +156,15 @@ final class FormBuilder{
     }
 
     private function hydrate(array &$fieldCollection, Model $model){
-        foreach ($model->getModifications() as $field){
-            $fieldCollection[$field]->value($model->{'get' . ucfirst($field)}());
+
+        $schema = $model->getSchema()->schema();
+
+        foreach ($schema['fields'] as $field){
+            $value = $model->{'get' . ucfirst($field['name'])}();
+            $input = $fieldCollection[$field['name']];
+            $input->value($value);
         }
+
         return new Form($fieldCollection, $model);
     }
 

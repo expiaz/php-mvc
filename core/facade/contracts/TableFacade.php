@@ -18,4 +18,9 @@ class TableFacade extends Facade {
         return Table::class;
     }
 
+    static function create(string $name): Table{
+        $ns = static::getFacadedClass();
+        return new $ns($name);
+    }
+
 }

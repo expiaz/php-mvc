@@ -40,4 +40,9 @@ abstract class Schema{
         return $this->statement;
     }
 
+    public function __toString()
+    {
+        return $this->schema();
+    }
+
 }

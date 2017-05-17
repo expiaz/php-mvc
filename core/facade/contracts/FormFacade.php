@@ -20,7 +20,7 @@ class FormFacade extends Facade {
         return Form::class;
     }
 
-    static function create(Model $model){
+    static function create(Model $model): Form{
         return static::getContainer(FormBuilder::class)->build($model);
     }
 }

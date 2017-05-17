@@ -14,7 +14,7 @@ class Table implements Statementizable, Schematizable {
     private $keyConstraint;
     private $uniqueConstraint;
 
-    public function __construct($name)
+    public function __construct(string $name)
     {
         $this->name = $name;
         $this->fields = [];
@@ -25,15 +25,16 @@ class Table implements Statementizable, Schematizable {
         return $this->name;
     }
 
-    public function prefix($prefix){
+    public function prefix($prefix): Table{
         $this->prefix = $prefix;
+        return $this;
     }
 
     public function getPrefix(){
         return $this->prefix;
     }
 
-    public function field($name){
+    public function field($name): Field{
         $field = new Field($this, $this->prefix ? $this->prefix.'_'.$name : $name);
         $this->fields[] = $field;
         return $field;
@@ -96,9 +97,11 @@ class Table implements Statementizable, Schematizable {
         $fieldsSql = "\t" . implode(",\n\t",$fieldsDescribed);
         $tableSql = "CREATE TABLE {$this->name} (\n {$fieldsSql} \n) ENGINE=InnoDB;";
 
-        $transaction = array_merge([$tableSql], array_map(function(Constraint $c){
+        $constraintsSql = array_map(function(Constraint $c){
             return $c->statement();
-        }, $this->constraints));
+        }, $this->constraints);
+
+        $transaction = array_merge([$tableSql], ... $constraintsSql);
 
         return $transaction;
     }
@@ -111,11 +114,16 @@ class Table implements Statementizable, Schematizable {
     {
         return [
             "table" => $this->name,
-            "prefix" => $this->prefix ?: NULL,
+            "prefix" => $this->prefix ?? NULL,
             "fields" => array_map(function(Field $e){
                 return $e->schema();
             },$this->fields)
         ];
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 
 }

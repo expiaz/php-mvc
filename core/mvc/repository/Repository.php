@@ -24,135 +24,176 @@ abstract class Repository{
         $this->model = $modelNs;
     }
 
-    public function getTable(): Table{
+    public function getTable(): Table
+    {
         return $this->table;
     }
 
-    public function getSchema(): Schema{
+    public function getSchema(): Schema
+    {
         return $this->schema;
     }
 
-    public function getModel(): Model{
+    public function getModel(): Model
+    {
         return (new $this->model($this->schema));
     }
 
-    private function hydrate(DataContainer $class){
-        $model = new $this->model($this->schema);
+    private function hydrate(DataContainer $class): Model
+    {
+        $model = $this->getModel();
         $schema = $model->getSchemaDefintion();
         foreach ($schema['fields'] as $field){
-            if(property_exists($model, $field))
-                $model->{"set" . ucfirst($field)}($class->{"get" . ucfirst($field)}());
+            if(property_exists($model, $field['name']))
+                $model->{ "set" . ucfirst( $field['name'] ) }( $class->{ "get" . ucfirst( $field['name'] ) }() );
         }
+        $model->isReady();
         return $model;
     }
 
-    public function fetch(string $sql, array &$param = []){
+    public function fetch(string $sql, array &$param = []): Model
+    {
         $upplet = $this->database->fetch($sql, $param);
         $model = $this->hydrate($upplet);
         return $model;
     }
 
-    public function fetchAll(string $sql, array &$param = []){
+    public function fetchAll(string $sql, array &$param = []): array
+    {
         $upplets = $this->database->fetchAll($sql, $param);
-        return array_map($upplets, function(DataContainer $e){
+        return array_map(function(DataContainer $e){
             return $this->hydrate($e);
-        });
+        }, $upplets);
     }
 
-    public function getLastInsertId(){
-        return $this->pdo->lastInsertId();
+    public function getLastInsertId()
+    {
+        return $this->database->getLastInsertId();
     }
 
-    public function find($clause, $bind){
-        $sql = 'SELECT ' . ($clause['select'] ? is_array($clause['select']) ? implode(', ',$clause['select']) : $clause['select'] : '*') . ' ';
-        $sql .= 'FROM ' . ($clause['from'] ? is_array($clause['from']) ? implode(', ', $clause['from']) : $clause['from'] : $this->table) . ' ';
-        $sql .= $clause['where'] ? ( 'WHERE ' . (is_array($clause['where']) ? implode(' AND ', $clause['where']) : $clause['where'])) : '';
-        $sql .= $clause['orderby'] ? ( 'ORDER BY ' . (is_array($clause['orderby']) ? implode(', ', $clause['orderby']) : $clause['orderby'])) : '';
-        $sql .= $clause['groupby'] ? ( 'GROUP BY ' . (is_array($clause['groupby']) ? implode(', ', $clause['groupby']) : $clause['groupby'])) : '';
-        $sql .= $clause['having'] ? ( 'HAVING ' . (is_array($clause['having']) ? implode(' AND ', $clause['having']) : $clause['having'])) : '';
-        $sql .= $clause['limit'] ? ( 'LIMIT ' . (is_array($clause['limit']) ? implode(', ', $clause['limit']) : $clause['limit'])) : '';
+    public function find($clause, $bind): array
+    {
+        $sql = 'SELECT ' . (isset($clause['select']) ? is_array($clause['select']) ? implode(', ',$clause['select']) : $clause['select'] : '*') . ' ';
+        $sql .= 'FROM ' . (isset($clause['from']) ? is_array($clause['from']) ? implode(', ', $clause['from']) : $clause['from'] : $this->table) . ' ';
+        $sql .= isset($clause['where']) ? ( 'WHERE ' . (is_array($clause['where']) ? implode(' AND ', $clause['where']) : $clause['where'])) : '';
+        $sql .= isset($clause['orderby']) ? ( 'ORDER BY ' . (is_array($clause['orderby']) ? implode(', ', $clause['orderby']) : $clause['orderby'])) : '';
+        $sql .= isset($clause['groupby']) ? ( 'GROUP BY ' . (is_array($clause['groupby']) ? implode(', ', $clause['groupby']) : $clause['groupby'])) : '';
+        $sql .= isset($clause['having']) ? ( 'HAVING ' . (is_array($clause['having']) ? implode(' AND ', $clause['having']) : $clause['having'])) : '';
+        $sql .= isset($clause['limit']) ? ( 'LIMIT ' . (is_array($clause['limit']) ? implode(', ', $clause['limit']) : $clause['limit'])) : '';
         $sql.= ';';
-        return $this->fetchAll($sql, $bind);
+        return $this->database->fetchAll($sql, $bind);
     }
 
 
-    public function getAll(){
-        $sql = "SELECT * FROM {$this->table};";
+    public function getAll(): array
+    {
+        $sql = sprintf("SELECT * FROM %s;",$this->table);
         return $this->fetchAll($sql);
     }
 
-    public function getByField($field, $value){
-        $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?;";
-        $parameters = array($value);
+    public function getByField($field, $value): array
+    {
+        $sql = sprintf("SELECT * FROM %s WHERE %s = :value;",$this->table, $field);
+        $parameters = ['value' => $value];
         return $this->fetchAll($sql,$parameters);
     }
 
-    public function getByFields(array $fields, array &$values){
+    public function getByFields(array $fields, array &$values): array
+    {
         $where = implode(' AND ',array_map(function($e){
-            return "{$e} = :{$e}";
+            return sprintf("%s = :%s",$e,$e);
         }, $fields));
-        $sql = "SELECT * FROM {$this->table} WHERE {$where};";
+        $sql = sprintf("SELECT * FROM %s WHERE %s;",$this->table, $where);
         return $this->fetchAll($sql,$values);
     }
 
-    public function getById($id){
-        $sql = 'SELECT * FROM ' . $this->table . ' WHERE id = ?;';
-        $parameters = array($id);
+    public function getById($id): Model
+    {
+        $sql = sprintf("SELECT * FROM %s WHERE id = :id;",$this->table);
+        $parameters = ['id' => $id];
         return $this->fetch($sql,$parameters);
     }
 
 
-    public function persist(Model $o){
+    public function persist(Model $o)
+    {
         if(is_null($o->getId())){
             return $this->update($o);
         }
-        $shouldUpdate = $this->find(
-            [
-                'select' => ' COUNT(id) as nb',
-                'from' => $o->getTable()->getName(),
-                'where' => 'id = :id'
-            ],
-            [
-                'id' => $o->getId()
-            ]
-        );
-        if($shouldUpdate[0]->nb > 0)
+
+        $shouldUpdate = $this->find([
+            'select' => ' COUNT(id) as nb',
+            'from' => $o->getTable()->getName(),
+            'where' => 'id = :id'
+        ], [
+            'id' => $o->getId()
+        ]);
+
+        if($shouldUpdate[0]->nb > 0){
             return $this->update($o);
+        }
+
         return $this->insert($o);
     }
 
-    public function update(Model $o){
-        if(count($o->getModifications()) > 0){
-            $fields = implode(' AND ',
-                array_map(
-                    function(string $e):string {
-                        return "{$e} = :{$e}";
-                    },
-                    $o->getModifications()
-                )
-            );
-            $sql = "UPDATE {$o->getTable()->getName()} SET {$fields} WHERE id={$o->getId()};";
-            $parameters = array_map(function($e) use ($o) { return $o->{"get" . ucfirst($e)}; }, $o->getModifications());
-            return $this->database->execute($sql, $parameters) ? $this->getLastInsertId() : false;
+    public function update(Model $o)
+    {
+        $modifications = $o->getModifications();
+
+        if(count($modifications) === 0){
+            return false;
         }
+
+        $fields = implode(' AND ',
+            array_map(
+                function(string $e):string {
+                    return sprintf("%s = :%s",$e,$e);
+                },
+                $modifications
+            )
+        );
+
+        $sql = sprintf("UPDATE %s SET %s WHERE id=%d;", $o->getTable()->getName(), $fields, $o->getId());
+
+        $values = [];
+        foreach ($modifications as $field){
+            $values[$field] =  $o->{"get" . ucfirst($field)}();
+        }
+
+        /*
+        echo "update\n";
+        echo "values " . print_r($values, true) . "\n";;
+        echo "sql $sql\n";
+        */
+
+        return $this->database->execute($sql, $values) ? $this->getLastInsertId() : false;
     }
 
-    public function insert(Model $o){
+    public function insert(Model $o)
+    {
+        $fieldsSchema = $o->getSchemaDefintion()['fields'];
 
         $fields = array_map(function($e){
-            return ":{$e}";
-        }, $o->getSchemaDefintion()['fields']);
-
-        $values = array_map(function($e) use ($o){
-            return $o->{"get" . $e['name']};
-        }, $o->getSchemaDefintion()['fields']);
-
-
+            return sprintf("%s",$e['name']);
+        }, $fieldsSchema);
 
         if(count($fields) === 0)
             return false;
 
-        $sql = "INSERT INTO `{$o->getTable()->getName()}` (`" . implode('`, `', $fields) . "`) VALUES (" . implode(', ', $fields) . ")";
+        $values = [];
+        foreach ($fieldsSchema as $fieldSchema){
+            $name = ucfirst($fieldSchema['name']);
+            $values[$fieldSchema['name']] =  $o->{"get{$name}"}();
+        }
+
+        $sql = sprintf("INSERT INTO `%s` (`%s`) VALUES (:%s)", $o->getTable()->getName(), implode('`, `', $fields), implode(', :', $fields));
+
+        /*
+        echo "insert\n";
+        echo "values " . print_r($values, true) . "\n";;
+        echo "sql $sql\n";
+        return;
+        */
 
         if($this->database->execute($sql, $values)){
             $o->setId($this->getLastInsertId());

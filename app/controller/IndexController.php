@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Core\Facade\Contracts\FormFacade;
 use Core\Form\Field;
 use Core\Form\Form;
 use Core\Http\Request;
@@ -10,9 +11,25 @@ use Core\Mvc\Controller\Controller;
 
 class IndexController extends Controller{
 
-    public function index(Request $r, Response $response){
+    public function index(Request $request, Response $response){
+
+        $sample = $this->getRepository()->getById(17);
+
+        $form = FormFacade::create($sample);
+
+        $form->action(\Url::create('/'));
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted()){
+            $sample2 = $form->getData();
+            $this->getRepository()->persist($sample2);
+
+
+        }
+
         return \View::render('index', [
-            'content' => 'Welcome'
+            'content' => $form->build()
         ]);
     }
 
@@ -57,6 +74,7 @@ class IndexController extends Controller{
             'authForm' => $f
         ]);
     }
+
     /*
     public function default(Request $r, HttpParameterBag $p){
         echo 'this is the default page';

@@ -28,40 +28,56 @@ final class Database{
         $this->close();
     }
 
-    public function getConnection(): PDO{
+    public function getConnection(): PDO
+    {
         return $this->pdo;
     }
 
-    public function close(){
+    public function close()
+    {
         $this->pdo = null;
     }
 
-    public function query(string $sql, int $mode = PDO::FETCH_OBJ): PDOStatement{
+    public function query(string $sql, int $mode = PDO::FETCH_OBJ): PDOStatement
+    {
         return $this->pdo->query($sql, $mode);
     }
 
-    public function execute(string $sql, array &$parameters = []): bool{
+    public function execute(string $sql, array $parameters = []): bool
+    {
         $query = $this->pdo->prepare($sql);
+        var_dump($query);
         return $query->execute($parameters);
     }
 
-    public function fetch(string $sql, array &$parameters = []): DataContainer{
+    public function fetch(string $sql, array $parameters = []): DataContainer
+    {
         $query = $this->pdo->prepare($sql);
         $query->execute($parameters);
         $query->setFetchMode(PDO::FETCH_CLASS, DataContainer::class);
-        return $query->fetch();
+        if($result = $query->fetch()){
+            return $result;
+        }
+        throw new \Exception("[Database::fetch] error while fetching");
     }
 
-    public function fetchAll(string $sql, array &$parameters = []): array{
+    public function fetchAll(string $sql, array &$parameters = []): array
+    {
         $query = $this->pdo->prepare($sql);
         $query->execute($parameters);
         return $query->fetchAll(PDO::FETCH_CLASS, DataContainer::class);
     }
 
-    public function raw(string $sql = 'SELECT NOW();', array &$param = []): array{
+    public function raw(string $sql = 'SELECT NOW();', array &$param = []): array
+    {
         $query = $this->pdo->prepare($sql);
         $query->execute($param);
         return $query->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    public function getLastInsertId()
+    {
+        return $this->pdo->lastInsertId();
     }
 
 }

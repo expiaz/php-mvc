@@ -155,14 +155,14 @@ final class App implements ArrayAccess
 
         /*
          * View
-         */
+
         $this->container[View::class] = function (Container $c): View{
             return new View($c);
         };
         $this->container['view'] = function (Container $c): View{
             return $c->get(View::class);
         };
-
+        */
 
         /*
          * Factories
@@ -218,7 +218,7 @@ final class App implements ArrayAccess
             }
         }
         else{
-            throw new \Exception("App::finish Headers already sent : \n<br/>" . print_r(headers_list()));
+            throw new \Exception("App::finish Headers already sent : \n<br/>" . print_r(headers_list(), true));
         }
         exit(0);
     }

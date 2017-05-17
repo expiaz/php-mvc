@@ -11,12 +11,14 @@ class Constraint implements Statementizable, Schematizable {
     private $referenceTable;
     private $referenceField;
     private $referenceFieldType;
+    private $defaultSelection;
     private $type;
-    private $mathematicalConditionnal;
+    private $mathematicalConditional;
 
     const PRIMARY_KEY = 1;
     const ONE_TO_ONE = 2;
     const MANY_TO_ONE = 3;
+    const ONE_TO_MANY = 12;
     const MANY_TO_MANY = 4;
     const CHECK = 5;
     const INDEX = 6;
@@ -47,27 +49,46 @@ class Constraint implements Statementizable, Schematizable {
         return $this;
     }
 
-    public function oneToOne($table, $field){
-        $this->referenceTable = $table;
-        $this->referenceField = $field;
+    public function oneToOne(){
         $this->type = static::ONE_TO_ONE;
         return $this;
     }
 
-    public function manyToOne($table, $field){
-        $this->referenceTable = $table;
-        $this->referenceField = $field;
+    public function manyToOne(){
         $this->type = static::MANY_TO_ONE;
         return $this;
     }
 
-    public function manyToMany($table, $field, $type, $length = null){
-        $this->referenceTable = $table;
-        $this->referenceField = $field;
-        $this->referenceFieldType = $length ? "{$type}({$length})" : $type;
+    public function manyToMany(){
         $this->type = static::MANY_TO_MANY;
         return $this;
     }
+
+    public function reference($table){
+        $this->referenceTable = $table;
+        return $this;
+    }
+
+    public function on($field){
+        $this->referenceField = $field;
+        return $this;
+    }
+
+    public function type($type){
+        $this->referenceFieldType = $type;
+        return $this;
+    }
+
+    public function length($length){
+        $this->referenceFieldType = "$this->referenceFieldType($length)";
+        return $this;
+    }
+
+    public function defaultFormSelection($field){
+        $this->defaultSelection = $field;
+        return $this;
+    }
+
 
     public function index(){
         $this->type = static::INDEX;
@@ -81,7 +102,7 @@ class Constraint implements Statementizable, Schematizable {
 
     public function check($check){
         $this->type = static::CHECK;
-        $this->mathematicalConditionnal = $check;
+        $this->mathematicalConditional = $check;
         return $this;
     }
 
@@ -98,13 +119,13 @@ class Constraint implements Statementizable, Schematizable {
         $secondField = "{$this->referenceTable}_id";
 
         $table = new Table($tableName);
-        $table->addField($firstField)->primaryKey()->type($this->field->getType());
-        $table->addField($secondField)->primaryKey()->type($this->referenceFieldType);
+        $table->field($firstField)->primaryKey()->type($this->field->getType());
+        $table->field($secondField)->primaryKey()->type($this->referenceFieldType);
 
         $firstConstraint = "FK_{$tableName}({$firstField})_{$this->table->getName()}({$this->field->getName()})";
         $secondConstraint = "FK_{$tableName}({$secondField})_{$this->referenceTable}({$this->referenceField})";
 
-        return array_merge($table->describe(), [
+        return array_merge($table->statement(), [
             "ALTER TABLE {$tableName} ADD CONSTRAINT {$firstConstraint} FOREIGN KEY ({$firstField}) REFERENCES {$this->table->getName()}({$this->field->getName()}), ADD CONSTRAINT {$secondConstraint} FOREIGN KEY ({$secondField}) REFERENCES {$this->referenceTable}($this->referenceField);"
         ]);
     }
@@ -130,9 +151,7 @@ class Constraint implements Statementizable, Schematizable {
 
     private function describePrimaryKey(){
         $name = "PK_{$this->table}($this->field)";
-        return [
-            "ALTER TABLE {$this->table} ADD CONSTRAINT {$name} PRIMARY KEY (`{$this->field}`);",
-        ];
+        return ["ALTER TABLE {$this->table} ADD CONSTRAINT {$name} PRIMARY KEY (`{$this->field}`);"];
     }
 
     private function describeIndex(){
@@ -179,11 +198,14 @@ class Constraint implements Statementizable, Schematizable {
 
     public function schema(): array
     {
-        return [
+        $schema = [
             "type" => $this->type,
             "table" => $this->referenceTable,
-            "field" => $this->referenceField
+            "field" => $this->referenceField,
+            "form" => $this->defaultSelection
         ];
+
+        return $schema;
     }
 
 }
