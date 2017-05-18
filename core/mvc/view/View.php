@@ -27,7 +27,7 @@ final class View
         $this->container = $c;
     }
 
-    function render(string $viewPath, array &$vars)
+    function render(string $viewPath, array $vars)
     {
         $path = VIEW . trim($viewPath,'/') . '.php';
         if (!file_exists($path)) {

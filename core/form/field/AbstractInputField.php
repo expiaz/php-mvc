@@ -55,6 +55,7 @@ abstract class AbstractInputField extends AbstractField{
     public function placeholder($placeholder)
     {
         $this->placeholder = (string) $placeholder;
+        return $this;
     }
 
     public function getPlaceholder()

@@ -17,15 +17,17 @@ abstract class Schema{
         $this->table = $t;
         $this->schema = $t->schema();
         $this->statement = $t->statement();
-        $this->orm = new ORM(container(Database::class), $this);
+        //$this->orm = new ORM(container(Database::class), $this);
     }
 
     public function up(){
-        $this->orm->create();
+        (new ORM(container(Database::class), $this))->create();
+        //$this->orm->create();
     }
 
     public function down(){
-        $this->orm->drop();
+        (new ORM(container(Database::class), $this))->drop();
+        //$this->orm->drop();
     }
 
     public function table(): Table{

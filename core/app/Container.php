@@ -57,7 +57,7 @@ class Container implements ArrayAccess, MagicAccessInterface {
             return $this->get($key);
         }
 
-        if(preg_match('/App[\\\](Model|Controller|Schema|Repository)/',$key)){
+        if(preg_match('/App[\\\](Model|Controller|Repository)/',$key)){
             return $this->resolveMvc($key);
         }
 
@@ -143,11 +143,6 @@ class Container implements ArrayAccess, MagicAccessInterface {
                 case 'Controller':
                     $this->set($key, $this->singleton(function (Container $c) use ($key):Controller {
                         return new $key($c, $c->resolve($c->get(Helper::class)->getRepositoryNs($key)));
-                    }));
-                    break;
-                case 'Schema':
-                    $this->set($key, $this->singleton(function (Container $c) use ($key):Schema {
-                        return new $key();
                     }));
                     break;
                 case 'Repository':

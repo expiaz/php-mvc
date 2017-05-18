@@ -1,15 +1,19 @@
 <?php
 
-
 use Core\Facade\Contracts\RouterFacade;
 
-RouterFacade::get('/', 'index@index');
-RouterFacade::post('/', 'index@index');
+//default
+RouterFacade::on('*', 'film@all')
+    ->use('user@middleware');;
 
-RouterFacade::get('/show/:id', 'index@show');
-RouterFacade::post('/show/:id', 'index@show');
+//auth
+RouterFacade::get('/auth', 'user@auth');
+RouterFacade::post('/auth', 'user@auth');
 
-RouterFacade::get('/auth', 'index@auth');
-RouterFacade::post('/auth', 'index@auth');
+//films
+RouterFacade::get('/', 'film@all')
+    ->use('user@middleware');
+
+
 
 

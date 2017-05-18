@@ -39,11 +39,15 @@ final class Router{
 
     public function use($handler){
         $this->middlewareForAll = $handler;
-        foreach ($this->routes as $route){
-            $route->use($handler);
+        foreach ($this->routes as $routes){
+            foreach ($routes as $route) {
+                $route->use($handler);
+            }
         }
-        foreach ($this->defaults as $defaultsRoute){
-            $defaultsRoute->use($handler);
+        foreach ($this->defaults as $defaultRoute){
+            if(! is_null($defaultRoute)){
+                $defaultRoute->use($handler);
+            }
         }
     }
 

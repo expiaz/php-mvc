@@ -2,28 +2,10 @@
 
 namespace Core\Utils;
 
-class DataContainer{
+use Core\Utils\Traits\MagicAccess;
 
-    public function __call($name, $arguments)
-    {
-        $type = substr($name,0,3);
-        $propName = strtolower(substr($name,3));
-        switch($type){
-            case 'set':
-                $this->$propName = $arguments;
-                break;
-            case 'get':
-                return $this->$propName;
-                break;
-        }
-    }
+class DataContainer implements \Core\Utils\Interfaces\MagicAccess, \ArrayAccess {
 
-    public function __get($prop){
-        return $prop;
-    }
-
-    public function __set($prop, $val){
-        $this->$prop = $val;
-    }
+    use MagicAccess;
 
 }

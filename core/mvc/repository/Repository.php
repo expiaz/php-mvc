@@ -3,6 +3,7 @@
 namespace Core\Mvc\Repository;
 
 use Core\Database\Orm\Schema\Table;
+use Core\Exception\NoDataFoundException;
 use Core\Exception\SqlAlterException;
 use Core\Mvc\Schema\Schema;
 use Core\Database\Database;
@@ -42,6 +43,7 @@ abstract class Repository{
 
     private function hydrate(DataContainer $class): Model
     {
+
         $model = $this->getModel();
         $schema = $model->getSchemaDefintion();
         foreach ($schema['fields'] as $field){
@@ -55,6 +57,11 @@ abstract class Repository{
     public function fetch(string $sql, array &$param = []): Model
     {
         $upplet = $this->database->fetch($sql, $param);
+
+        if($upplet->empty()){
+            throw new NoDataFoundException("[Repository::hydrate] No upplet found : sql request : {$sql}, bindings : " . print_r($param, true));
+        }
+
         $model = $this->hydrate($upplet);
         return $model;
     }
@@ -62,6 +69,11 @@ abstract class Repository{
     public function fetchAll(string $sql, array &$param = []): array
     {
         $upplets = $this->database->fetchAll($sql, $param);
+
+        if(count($upplets) === 0){
+            throw new NoDataFoundException("[Repository::fetchAll] No upplets found : sql request : {$sql}, bindings : " . print_r($param, true));
+        }
+
         return array_map(function(DataContainer $e){
             return $this->hydrate($e);
         }, $upplets);
@@ -99,13 +111,17 @@ abstract class Repository{
         return $this->fetchAll($sql,$parameters);
     }
 
-    public function getByFields(array $fields, array &$values): array
+    public function getByFields(array $fields = []): array
     {
+        if(count(array_keys($fields)) == 0){
+            throw new \InvalidArgumentException("[Repository::getByFields expect arrays of bindings");
+        }
+
         $where = implode(' AND ',array_map(function($e){
             return sprintf("%s = :%s",$e,$e);
-        }, $fields));
+        }, array_keys($fields)));
         $sql = sprintf("SELECT * FROM %s WHERE %s;",$this->table, $where);
-        return $this->fetchAll($sql,$values);
+        return $this->fetchAll($sql,$fields);
     }
 
     public function getById($id): Model

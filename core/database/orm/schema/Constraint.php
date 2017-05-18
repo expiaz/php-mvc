@@ -120,8 +120,8 @@ class Constraint implements Statementizable, Schematizable {
         $table->field($firstField)->primaryKey()->type($this->field->getType());
         $table->field($secondField)->primaryKey()->type($this->referenceFieldType);
 
-        $firstConstraint = "FK_{$tableName}({$firstField})_{$this->table->getName()}({$this->field->getName()})";
-        $secondConstraint = "FK_{$tableName}({$secondField})_{$this->referenceTable}({$this->referenceField})";
+        $firstConstraint = "FK_{$tableName}_{$firstField}__{$this->table->getName()}_{$this->field->getName()}";
+        $secondConstraint = "FK_{$tableName}_{$secondField}__{$this->referenceTable}_{$this->referenceField}";
 
         return array_merge($table->statement(), [
             "ALTER TABLE {$tableName} ADD CONSTRAINT {$firstConstraint} FOREIGN KEY ({$firstField}) REFERENCES {$this->table->getName()}({$this->field->getName()}), ADD CONSTRAINT {$secondConstraint} FOREIGN KEY ({$secondField}) REFERENCES {$this->referenceTable}($this->referenceField);"
@@ -129,13 +129,13 @@ class Constraint implements Statementizable, Schematizable {
     }
 
     private function describeManyToOne(){
-        $name = "FK_{$this->table->getName()}({$this->field->getName()})_{$this->referenceTable}({$this->referenceField})";
+        $name = "FK_{$this->table->getName()}_{$this->field->getName()}__{$this->referenceTable}_{$this->referenceField}";
         return ["ALTER TABLE {$this->table->getName()} ADD CONSTRAINT {$name} FOREIGN KEY ({$this->field->getName()}) REFERENCES {$this->referenceTable}($this->referenceField);"];
     }
 
     private function describeOneToOne()
     {
-        $name = "FK_{$this->table->getName()}({$this->field->getName()})_{$this->referenceTable}({$this->referenceField})";
+        $name = "FK_{$this->table->getName()}_{$this->field->getName()}__{$this->referenceTable}_{$this->referenceField}";
         return ["ALTER TABLE {$this->table->getName()} ADD CONSTRAINT {$name} FOREIGN KEY ({$this->field->getName()}) REFERENCES {$this->referenceTable}($this->referenceField);"];
     }
 
@@ -143,22 +143,22 @@ class Constraint implements Statementizable, Schematizable {
 
 
     private function describeCheck(){
-        $name = "CHECK_{$this->table}($this->field)";
+        $name = "CHECK_{$this->table}_$this->field";
         return ["ALTER TABLE {$this->table} ADD CONSTRAINT {$name} CHECK ({$this->check})"];
     }
 
     private function describePrimaryKey(){
-        $name = "PK_{$this->table}($this->field)";
+        $name = "PK_{$this->table}_$this->field";
         return ["ALTER TABLE {$this->table} ADD CONSTRAINT {$name} PRIMARY KEY (`{$this->field}`);"];
     }
 
     private function describeIndex(){
-        $name = "PK_{$this->table}($this->field)";
+        $name = "PK_{$this->table}_$this->field";
         return ["CREATE INDEX {$name} ON `{$this->table}` (`{$this->field}`);"];
     }
 
     private function describeUnique(){
-        $name = "PK_{$this->table}($this->field)";
+        $name = "PK_{$this->table}_$this->field";
         return ["CREATE UNIQUE INDEX {$name} ON `{$this->table}` (`{$this->field}`);"];
     }
 

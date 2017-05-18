@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\Schema\ActeurSchema;
+use App\Schema\FilmSchema;
+use App\Schema\RealisateurSchema;
+use App\Schema\UserSchema;
 use Core\Exception\SqlAlterException;
 use Core\Facade\Contracts\FormFacade;
 use Core\Form\Field\Input\PasswordInput;
@@ -15,7 +19,7 @@ use Core\Mvc\Controller\Controller;
 class IndexController extends Controller{
 
     public function index(Request $request, Response $response){
-
+        /*
         $sample = $this->getRepository()->getModel();
 
         $form = FormFacade::create($sample);
@@ -30,38 +34,31 @@ class IndexController extends Controller{
                 return $e->getMessage();
             }
         }
+        */
 
         return \View::render('index', [
-            'content' => $form->build()
+            'content' => 'index'
         ]);
     }
 
-    public function show(Request $request, Response $response){
-        $film = $this->getRepository()->getById($request->getParameter('id'));
-        $form = FormFacade::create($film);
-        $form->handleRequest($request);
-
-        if($form->isSubmitted()){
-            $hydrated = $form->getData();
-            try{
-                $this->getRepository()->update($hydrated);
-            } catch (SqlAlterException $e){
-                return $e->getMessage();
-            }
-        }
+    public function schema(Request $request, Response $response){
+        $this->container[UserSchema::class]->up();
+        $this->container[ActeurSchema::class]->up();
+        $this->container[RealisateurSchema::class]->up();
+        $this->container[FilmSchema::class]->up();
 
         return \View::render('index', [
-            'content' => $form->build()
+            'content' => 1
         ]);
-
     }
+
+
 
     public function authMiddleware(Request $request, Response $response, callable $next){
-        if(! \Session::exists('connected'))
+        if(! \Session::exists('connected_as'))
             return \Router::redirect(\Url::create('/auth'));
         return $next($request, $response);
     }
-
 
 
     public function auth(Request $r){
@@ -86,7 +83,6 @@ class IndexController extends Controller{
         $f->handleRequest($r);
 
         if($f->isSubmitted()){
-            //validation logic
             \Session::set('connected', true);
             return \Router::redirect(\Url::create('/'));
         }
@@ -154,6 +150,26 @@ class IndexController extends Controller{
             'project' => $f
         ]);
     }*/
+
+    public function show(Request $request, Response $response){
+        $film = $this->getRepository()->getById($request->getParameter('id'));
+        $form = FormFacade::create($film);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted()){
+            $hydrated = $form->getData();
+            try{
+                $this->getRepository()->update($hydrated);
+            } catch (SqlAlterException $e){
+                return $e->getMessage();
+            }
+        }
+
+        return \View::render('index', [
+            'content' => $form->build()
+        ]);
+
+    }
 
     public function error404(Request $request, Response $response){
         \Response::withStatus(404);

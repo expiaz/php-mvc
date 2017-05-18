@@ -39,6 +39,10 @@ trait CollectionAccess{
         return isset($this->container[$key]);
     }
 
+    public function has(string $key){
+        return $this->exists($key);
+    }
+
     public function set(string $key, $value){
 
         if(!$this->beforeEach($key))
@@ -79,6 +83,10 @@ trait CollectionAccess{
             return;
 
         $this->container = $this->initializeContainer();
+    }
+
+    public function empty(){
+        return count(array_keys($this->container)) > 0;
     }
 
     public function getAll(){

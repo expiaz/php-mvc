@@ -3,6 +3,7 @@
 namespace Core\Database\Orm;
 
 use Core\Database\Database;
+use Core\Exception\SqlAlterException;
 use Core\Mvc\Schema\Schema;
 
 final class ORM{
@@ -17,13 +18,24 @@ final class ORM{
     }
 
     public function create(){
-        $sql = $this->schema->statement();
-        return $this->pdo->query($sql) ? true : false;
+        $statements = $this->schema->statement();
+        $this->pdo->beginTransaction();
+        foreach ($statements as $statement){
+            if($this->pdo->exec($statement) === false){
+                $this->pdo->rollBack();
+                throw new SqlAlterException("[ORM::create] problem with sql request : {$statement}");
+            }
+        }
+        $this->pdo->commit();
+        return true;
     }
 
     public function drop(){
         $sql = "DROP TABLE {$this->schema->schema()['table']};";
-        return $this->pdo->query($sql) ? true : false;
+        if($this->pdo->exec($sql) === false){
+            throw new SqlAlterException("[ORM::create] problem with sql request : {$sql}");
+        }
+        return true;
     }
 
 }

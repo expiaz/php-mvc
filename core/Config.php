@@ -16,7 +16,7 @@ final class Config implements ArrayAccess, MagicAccessInterface {
         $c = [
             'database' => [
                 'sgbd' => 'mysql',
-                'name' => 'webphp',
+                'name' => 'orm_test',
                 'host' => 'localhost',
                 'charset' => 'UTF8',
                 'user' => 'root',
@@ -29,6 +29,9 @@ final class Config implements ArrayAccess, MagicAccessInterface {
             'upload' => [
                 'path' => 'upload',
                 'size' => 1000000
+            ],
+            'password' => [
+                'salt' => 'thisisachainof22characters'
             ]
         ];
 

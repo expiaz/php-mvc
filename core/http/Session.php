@@ -32,6 +32,38 @@ final class Session implements ArrayAccess, MagicAccessInterface {
         return $_SESSION;
     }
 
+    public function set(string $key, $value)
+    {
+        if(!$this->beforeEach($key))
+            return;
+
+        $this->normalize($key);
+
+        $_SESSION[$key] = $value;
+    }
+
+    public function get(string $key, $default = null)
+    {
+        if(!$this->beforeEach($key))
+            return;
+
+        $this->normalize($key);
+        if($this->exists($key)){
+            return $_SESSION[$key];
+        }
+
+        return $default;
+    }
+
+    public function exists(string $key)
+    {
+        if(!$this->beforeEach($key))
+            return;
+
+        $this->normalize($key);
+        return isset($_SESSION[$key]);
+    }
+
     public function beforeEach(string &$key)
     {
         return static::$on === true;

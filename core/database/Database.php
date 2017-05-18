@@ -2,7 +2,6 @@
 
 namespace Core\Database;
 
-
 use Core\Config;
 use Core\Utils\DataContainer;
 use PDO, PDOException;
@@ -53,18 +52,18 @@ final class Database{
     {
         $query = $this->pdo->prepare($sql);
         $query->execute($parameters);
-        $query->setFetchMode(PDO::FETCH_CLASS, DataContainer::class);
+        $query->setFetchMode(PDO::FETCH_CLASS, UppletContainer::class);
         if($result = $query->fetch()){
             return $result;
         }
         throw new \Exception("[Database::fetch] error while fetching");
     }
 
-    public function fetchAll(string $sql, array &$parameters = []): array
+    public function fetchAll(string $sql, array $parameters = []): array
     {
         $query = $this->pdo->prepare($sql);
         $query->execute($parameters);
-        return $query->fetchAll(PDO::FETCH_CLASS, DataContainer::class);
+        return $query->fetchAll(PDO::FETCH_CLASS, UppletContainer::class);
     }
 
     public function raw(string $sql = 'SELECT NOW();', array &$param = []): array

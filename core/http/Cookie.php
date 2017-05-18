@@ -20,6 +20,28 @@ final class Cookie implements ArrayAccess, MagicAccessInterface {
         setcookie((string) $k,(string) $v,$expire);
     }
 
+    public function get(string $key, $default = null)
+    {
+        if(!$this->beforeEach($key))
+            return;
+
+        $this->normalize($key);
+        if($this->exists($key)){
+            return $_COOKIE[$key];
+        }
+
+        return $default;
+    }
+
+    public function exists(string $key)
+    {
+        if(!$this->beforeEach($key))
+            return;
+
+        $this->normalize($key);
+        return isset($_COOKIE[$key]);
+    }
+
     public function delete(string $k){
         $this->unset($k);
     }

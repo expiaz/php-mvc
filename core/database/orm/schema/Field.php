@@ -49,6 +49,10 @@ class Field implements Statementizable, Schematizable {
                 $formType = AbstractInputField::BOOLEAN;
                 $this->length(1);
                 break;
+            case 'password':
+                $type = 'varchar';
+                $formType = AbstractInputField::PASSWORD;
+                $this->length(255);
         }
         $this->formType = $formType ?? $type;
         $this->type = strtoupper($type);
