@@ -3,6 +3,7 @@
 namespace Core\Database;
 
 use Core\Config;
+use Core\Exception\NoDataFoundException;
 use Core\Utils\DataContainer;
 use PDO, PDOException;
 use PDOStatement;
@@ -48,22 +49,29 @@ final class Database{
         return $query->execute($parameters);
     }
 
-    public function fetch(string $sql, array $parameters = []): DataContainer
+    public function fetch(string $sql, array &$parameters = []): UppletContainer
     {
-        $query = $this->pdo->prepare($sql);
+        return $this->fetchAll($sql, $parameters)[0];
+        /*$query = $this->pdo->prepare($sql);
         $query->execute($parameters);
         $query->setFetchMode(PDO::FETCH_CLASS, UppletContainer::class);
         if($result = $query->fetch()){
             return $result;
         }
-        throw new \Exception("[Database::fetch] error while fetching");
+        throw new \Exception("[Database::fetch] error while fetching");*/
     }
 
-    public function fetchAll(string $sql, array $parameters = []): array
+    public function &fetchAll(string $sql, array &$parameters = []): array
     {
         $query = $this->pdo->prepare($sql);
         $query->execute($parameters);
-        return $query->fetchAll(PDO::FETCH_CLASS, UppletContainer::class);
+        $upplets = $query->fetchAll(PDO::FETCH_CLASS, UppletContainer::class);
+
+        if(count($upplets) === 0){
+            throw new NoDataFoundException("[Repository::fetchAll] No upplets found : sql request : {$sql}, bindings : " . print_r($parameters, true));
+        }
+
+        return $upplets;
     }
 
     public function raw(string $sql = 'SELECT NOW();', array &$param = []): array

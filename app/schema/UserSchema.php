@@ -16,7 +16,7 @@ class UserSchema extends Schema {
 
         $table->field('name')
             ->type('varchar')
-            ->length(255);
+            ->length(50);
 
         $table->field('login')
             ->type('varchar')

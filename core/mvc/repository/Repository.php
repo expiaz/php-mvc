@@ -58,25 +58,17 @@ abstract class Repository{
     {
         $upplet = $this->database->fetch($sql, $param);
 
-        if($upplet->empty()){
-            throw new NoDataFoundException("[Repository::hydrate] No upplet found : sql request : {$sql}, bindings : " . print_r($param, true));
-        }
-
         $model = $this->hydrate($upplet);
         return $model;
     }
 
-    public function fetchAll(string $sql, array &$param = []): array
+    public function &fetchAll(string $sql, array &$param = []): array
     {
         $upplets = $this->database->fetchAll($sql, $param);
-
-        if(count($upplets) === 0){
-            throw new NoDataFoundException("[Repository::fetchAll] No upplets found : sql request : {$sql}, bindings : " . print_r($param, true));
-        }
-
-        return array_map(function(DataContainer $e){
+        $hydratedUpplets = array_map(function(DataContainer $e){
             return $this->hydrate($e);
         }, $upplets);
+        return $hydratedUpplets;
     }
 
     public function getLastInsertId()

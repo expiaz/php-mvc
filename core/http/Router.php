@@ -106,15 +106,15 @@ final class Router{
         return $this->defaults[$method];
     }
 
-    public function apply(string $route, $requestMethod): Route{
+    public function apply(string $url, $requestMethod): Route{
 
         $method = $this->resolveRequestMethod($requestMethod);
 
-        if(empty($route)){
+        if(empty($url) || $url === '/'){
             $route = '/';
         }
         else{
-            $route = trim($route, '/');
+            $route = trim($url, '/');
         }
 
         foreach ($this->routes[$method] as $r){

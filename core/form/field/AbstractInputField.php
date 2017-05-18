@@ -127,6 +127,10 @@ abstract class AbstractInputField extends AbstractField{
             $out .= " title=\"{$this->title}\"";
         }
 
+        if(! is_null($this->placeholder)){
+            $out .= " placeholder=\"{$this->placeholder}\"";
+        }
+
         $out .= $baseProps;
 
         $out .= $childProps;

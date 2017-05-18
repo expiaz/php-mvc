@@ -50,7 +50,7 @@ class Field implements Statementizable, Schematizable {
                 $this->length(1);
                 break;
             case 'password':
-                $type = 'varchar';
+                $type = 'VARCHAR';
                 $formType = AbstractInputField::PASSWORD;
                 $this->length(255);
         }

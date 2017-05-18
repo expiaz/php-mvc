@@ -22,17 +22,19 @@ use Core\Http\Url;
 final class View
 {
 
-    public function __construct(Container $c)
+    public function __construct(Container $c, string $viewPath)
     {
         $this->container = $c;
-    }
 
-    function render(string $viewPath, array $vars)
-    {
-        $path = VIEW . trim($viewPath,'/') . '.php';
-        if (!file_exists($path)) {
+        $path = VIEW . str_replace('/', DS,trim($viewPath,'/')) . '.php';
+        if (! file_exists($path)) {
             $path = VIEW . 'index.php';
         }
+        $this->path = $path;
+    }
+
+    function render(array $vars)
+    {
         if(!isset($vars['error'])){
             $vars['error'] = false;
         }
@@ -49,20 +51,20 @@ final class View
 
         $vars['home'] = WEBROOT;
 
-        return $this->capture($path,$vars);
+        return $this->capture($vars);
     }
 
-    private function capture(string $viewPath, array &$vars){
+    private function capture(array &$vars): string{
         $level = ob_get_level();
         ob_start();
         extract($vars, EXTR_SKIP);
         require_once LAYOUT . 'header.php';
-        require_once($viewPath);
+        require_once($this->path);
         require_once LAYOUT . 'footer.php';
         $content = ob_get_clean();
         $newLevel = ob_get_level();
         if($newLevel !== $level){
-            throw new \Exception("View::render ob_level fails expected $level got {$newLevel}");
+            throw new \Exception("[View::render] ob_level fails expected $level got {$newLevel}");
         }
         return $content;
     }

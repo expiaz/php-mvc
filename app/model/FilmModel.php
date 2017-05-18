@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use Core\Facade\Contracts\UrlFacade;
 use Core\Mvc\Model\Model;
 
 class FilmModel extends Model {
@@ -12,6 +13,10 @@ class FilmModel extends Model {
     private $realisateur;
     private $description;
     private $affiche;
+
+    public function getLink(){
+        return UrlFacade::create("/film/{$this->getId()}");
+    }
 
     /**
      * @return mixed

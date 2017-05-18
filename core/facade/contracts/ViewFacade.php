@@ -18,7 +18,7 @@ class ViewFacade extends Facade {
         return View::class;
     }
 
-    static function create(string $viewPath, array $args = []){
-        return static::getContainer(static::getFacadedClass())->render($viewPath, $args);
+    static function render(string $viewPath, array $args = []){
+        return (new View(static::getContainer(), $viewPath))->render($args);
     }
 }

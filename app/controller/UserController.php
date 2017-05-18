@@ -3,6 +3,11 @@
 namespace App\Controller;
 
 use Core\Exception\NoDataFoundException;
+use Core\Facade\Contracts\FormFacade;
+use Core\Facade\Contracts\RouterFacade;
+use Core\Facade\Contracts\SessionFacade;
+use Core\Facade\Contracts\UrlFacade;
+use Core\Facade\Contracts\ViewFacade;
 use Core\Form\Field\Input\PasswordInput;
 use Core\Form\Field\Input\SubmitInput;
 use Core\Form\Field\Input\TextInput;
@@ -18,8 +23,8 @@ class UserController extends Controller{
     }
 
     public function middleware(Request $request, Response $response, $next){
-        if(! \Session::exists('connected_as'))
-            return \Router::redirect(\Url::create('/auth'));
+        if(! SessionFacade::exists('connected_as'))
+            return RouterFacade::redirect(UrlFacade::create('/auth'));
         return $next($request, $response);
     }
 
@@ -49,20 +54,65 @@ class UserController extends Controller{
 
             try{
                 $user = $this->getRepository()->auth($credentials['login'], $credentials['password']);
-                \Session::set('connected_as', $user->getId());
-                return \Router::redirect(\Url::create('/'));
+                SessionFacade::set('connected_as', $user->getId());
+                return RouterFacade::redirect(UrlFacade::create('/'));
             } catch (NoDataFoundException $e){
-                return \View::render('auth', [
+                return ViewFacade::render('user/auth', [
                     'authForm' => $f,
+                    'subscribeLink' => UrlFacade::create('/subscribe'),
                     'error' => 'Bad credentials'
                 ]);
             }
 
         }
 
-        return \View::render('auth', [
-            'authForm' => $f
+        return \View::render('user/auth', [
+            'authForm' => $f,
+            'subscribeLink' => UrlFacade::create('/subscribe'),
         ]);
+    }
+
+    public function subscribe(Request $request, Response $response){
+        $repo = $this->getRepository();
+
+        $dummy = $repo->getModel();
+        $form = FormFacade::create($dummy);
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted()){
+            try{
+                $repo->find([
+                    'select' => '*',
+                    'from' => 'user',
+                    'where' => 'name LIKE :name OR login LIKE :login'
+                ], [
+                    'name' => $dummy->getName(),
+                    'login' => $dummy->getLogin()
+                ]);
+
+                return ViewFacade::render('user/inscription', [
+                    'subForm' => $form->build(),
+                    'error' => 'credentials already taken'
+                ]);
+            } catch (NoDataFoundException $e){
+                $this->getRepository()->insert($dummy);
+                SessionFacade::set('connected_as', $dummy->getId());
+                return RouterFacade::redirect(UrlFacade::create('/'));
+            }
+
+        }
+
+        return ViewFacade::render('user/inscription', [
+            'subForm' => $form->build()
+        ]);
+    }
+
+    public function alreadyCoMiddleware(Request $request, Response $response, callable $next){
+        if(SessionFacade::has('connected_as')){
+            return RouterFacade::redirect(UrlFacade::create('/'));
+        }
+        return $next($request, $response);
     }
 
 }

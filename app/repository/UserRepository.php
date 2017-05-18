@@ -8,7 +8,7 @@ use Core\Mvc\Repository\Repository;
 
 class UserRepository extends Repository {
 
-    private function hashPassword($password){
+    public function hashPassword($password){
         return password_hash($password, PASSWORD_BCRYPT, container(Config::class)['password']);
     }
 

@@ -59,11 +59,21 @@ class Form{
         return $this;
     }
 
+    public function getClass(){
+        return $this->class;
+    }
+
+
     public function id(string $id): Form
     {
         $this->id = $id;
         return $this;
     }
+
+    public function getId(){
+        return $this->id;
+    }
+
 
     public function enctype(string $enctype): Form
     {
@@ -78,17 +88,32 @@ class Form{
         return $this;
     }
 
+    public function getEnctype(){
+        return $this->enctype;
+    }
+
+
     public function action(string $action): Form
     {
         $this->action = $action;
         return $this;
     }
 
+    public function getAction(){
+        return $this->action;
+    }
+
+
     public function method(string $method): Form
     {
         $this->method = $method;
         return $this;
     }
+
+    public function getMethod(){
+        return $this->method;
+    }
+
 
     public function build(): string
     {
@@ -161,6 +186,11 @@ class Form{
     public function handleRequest(Request $request)
     {
         $method = strtolower($this->method);
+
+        if(strtolower($request->getMethod()) !== $method){
+            $this->isSubmitted = false;
+            return;
+        }
 
         switch ($method){
             case 'get':

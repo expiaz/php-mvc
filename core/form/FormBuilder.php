@@ -12,6 +12,7 @@ use Core\Form\Field\Input\DateInput;
 use Core\Form\Field\Input\FileInput;
 use Core\Form\Field\Input\HiddenInput;
 use Core\Form\Field\Input\NumberInput;
+use Core\Form\Field\Input\PasswordInput;
 use Core\Form\Field\Input\TextInput;
 use Core\Form\Field\Select\OptionField;
 use Core\Form\Field\SelectField;
@@ -44,6 +45,9 @@ final class FormBuilder{
             }
             elseif(preg_match('#boolean#i',$field['formtype'])){
                 $description = new BooleanInput();
+            }
+            elseif(preg_match('#password#i',$field['formtype'])){
+                $description = new PasswordInput();
             }
             else{
                 $description = new NumberInput();
