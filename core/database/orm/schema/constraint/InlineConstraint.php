@@ -1,6 +1,9 @@
 <?php
 
-namespace Core\Database\Orm\Schema;
+namespace Core\Database\Orm\Schema\Constraint;
+
+use Core\Database\Orm\Schema\Schematizable;
+use Core\Database\Orm\Schema\Statementizable;
 
 class InlineConstraint implements Statementizable, Schematizable {
 
@@ -42,6 +45,8 @@ class InlineConstraint implements Statementizable, Schematizable {
                 return "UNIQUE KEY `UNIQUE_{$typeName}` ({$fields})";
                 break;
         }
+
+        return '';
     }
 
     public function schema():array

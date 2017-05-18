@@ -20,6 +20,11 @@ final class Dispatcher{
     private $container;
 
     public function __construct(Container $container, string $url){
+        if(empty($url)){
+            $url = '/';
+        } else{
+            $url = trim($url, '/');
+        }
         $this->url = $url;
         $this->container = $container;
     }

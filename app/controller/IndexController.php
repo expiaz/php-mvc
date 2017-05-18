@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use Core\Exception\SqlAlterException;
 use Core\Facade\Contracts\FormFacade;
-use Core\Form\Field;
+use Core\Form\Field\Input\PasswordInput;
+use Core\Form\Field\Input\SubmitInput;
+use Core\Form\Field\Input\TextInput;
 use Core\Form\Form;
 use Core\Http\Request;
 use Core\Http\Response;
@@ -13,24 +16,44 @@ class IndexController extends Controller{
 
     public function index(Request $request, Response $response){
 
-        $sample = $this->getRepository()->getById(17);
+        $sample = $this->getRepository()->getModel();
 
         $form = FormFacade::create($sample);
-
-        $form->action(\Url::create('/'));
 
         $form->handleRequest($request);
 
         if($form->isSubmitted()){
-            $sample2 = $form->getData();
-            $this->getRepository()->persist($sample2);
-
-
+            $hydrated = $form->getData();
+            try{
+                $this->getRepository()->insert($hydrated);
+            } catch (SqlAlterException $e){
+                return $e->getMessage();
+            }
         }
 
         return \View::render('index', [
             'content' => $form->build()
         ]);
+    }
+
+    public function show(Request $request, Response $response){
+        $film = $this->getRepository()->getById($request->getParameter('id'));
+        $form = FormFacade::create($film);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted()){
+            $hydrated = $form->getData();
+            try{
+                $this->getRepository()->update($hydrated);
+            } catch (SqlAlterException $e){
+                return $e->getMessage();
+            }
+        }
+
+        return \View::render('index', [
+            'content' => $form->build()
+        ]);
+
     }
 
     public function authMiddleware(Request $request, Response $response, callable $next){
@@ -40,26 +63,24 @@ class IndexController extends Controller{
     }
 
 
+
     public function auth(Request $r){
         $f = new Form();
 
         $f->action(\Url::create('/auth'));
 
-        $f->field((new Field())
+        $f->field((new TextInput())
             ->name('login')
             ->required()
-            ->placeholder('login')
-            ->type('text'));
+            ->placeholder('login'));
 
-        $f->field((new Field())
+        $f->field((new PasswordInput())
             ->name('password')
             ->required()
-            ->placeholder('password')
-            ->type('password'));
+            ->placeholder('password'));
 
-        $f->field((new Field())
+        $f->field((new SubmitInput())
             ->name('submit')
-            ->type('submit')
             ->value('envoyer'));
 
         $f->handleRequest($r);

@@ -142,6 +142,7 @@ final class Router{
         if(! is_null($this->middlewareForAll)){
             $defaultRoute->use($this->middlewareForAll);
         }
+
         return $defaultRoute;
     }
 

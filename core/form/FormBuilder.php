@@ -2,11 +2,20 @@
 
 namespace Core\Form;
 
-use Closure;
-use Core\Database\Database;
 use Core\Database\Orm\Schema\Constraint;
 use Core\Database\Orm\Schema\Table;
 use Core\Facade\Contracts\DatabaseFacade;
+use Core\Form\Field\AbstractField;
+use Core\Form\Field\AbstractInputField;
+use Core\Form\Field\Input\BooleanInput;
+use Core\Form\Field\Input\DateInput;
+use Core\Form\Field\Input\FileInput;
+use Core\Form\Field\Input\HiddenInput;
+use Core\Form\Field\Input\NumberInput;
+use Core\Form\Field\Input\TextInput;
+use Core\Form\Field\Select\OptionField;
+use Core\Form\Field\SelectField;
+use Core\Form\Field\TextareaField;
 use Core\Mvc\Model\Model;
 
 final class FormBuilder{
@@ -16,54 +25,67 @@ final class FormBuilder{
         $baseSchema = $table->schema();
 
         $fields = [];
+
         foreach ($baseSchema['fields'] as $field){
-            $description = [];
 
-            $description['name'] = $field['name'];
-
+            $description = null;
             if(preg_match('#char|text#i',$field['formtype'])){
-                $description['type'] = 'text';
+                if(! is_null($field['length']) && $field['length'] > 200){
+                    $description = new TextareaField();
+                } else {
+                    $description = new TextInput();
+                }
             }
             elseif(preg_match('#date|time#i',$field['formtype'])){
-                $description['type'] = 'date';
+                $description = new DateInput();
             }
             elseif(preg_match('#file#i',$field['formtype'])){
-                $description['type'] = 'file';
+                $description = new FileInput();
             }
             elseif(preg_match('#boolean#i',$field['formtype'])){
-                $description['type'] = 'boolean';
+                $description = new BooleanInput();
             }
             else{
-                $description['type'] = 'number';
+                $description = new NumberInput();
             }
 
-            if(! is_null($field['length'])){
-                $description['maxlength'] = $field['length'];
-                if($field['length'] > 200 && $description['type'] == 'text')
-                    $description['type'] = 'textarea';
-            }
-            else{
-                $description['maxlength'] = null;
-            }
+            $description->label($field['name']);
+            $description->name($field['name']);
+
+            if($description->getFieldType() === AbstractField::INPUT)
+                $description->placeholder($field['name']);
 
 
-            $description['required'] = $field['null'] ? false : true;
+            if(! is_null($field['length']) ){
+                switch ($description->getFieldType()){
+                    case AbstractField::TEXTAREA:
+                        $description->maxlength($field['length']);
+                        break;
+                    case AbstractInputField::INPUT:
+                        /*if($description->getType() === AbstractInputField::TEXT){
+                            $description->maxlength($field['length']);
+                        }
+                        if($description->getType() === AbstractInputField::NUMBER){
+                            $description->max($field['length']);
+                        }*/
+                        break;
+                }
+            }
+
+            if($field['null']){
+                $description->required();
+            }
 
             if(! is_null($field['default'])){
                 if($field['default'] === 'NOT NULL'){
-                    $description['required'] = true;
-                    $description['value'] = null;
+                    $description->required();
                 }
                 elseif($field['default'] === 'NULL'){
-                    $description['required'] = false;
-                    $description['value'] = null;
+
                 }
                 else{
-                    $description['value'] = $field['default'];
+                    $description->value($field['default']);
                 }
-            }
-            else{
-                $description['value'] = NULL;
             }
 
 
@@ -72,86 +94,79 @@ final class FormBuilder{
 
                     case Constraint::PRIMARY_KEY:
                         if($field['auto']){
-                            $description['type'] = 'hidden';
-                            if(! is_null($description['value'])){
-                                $description['required'] = true;
+                            $description = new HiddenInput();
+                            $description->label($field['name']);
+                            $description->name($field['name']);
+
+                            if(! is_null($field['default'])){
+                                if($field['default'] === 'NOT NULL'){
+
+                                }
+                                elseif($field['default'] === 'NULL'){
+
+                                }
+                                else{
+                                    $description->value($field['default']);
+                                }
                             }
-                            else{
-                                $description['required'] = false;
+
+                            if(! is_null($description->getValue())){
+                                $description->required();
                             }
                         }
                         break;
+
                     case Constraint::INDEX:
                     case Constraint::UNIQUE:
-                        $description['required'] = true;
+                        $description->required();
                         break;
 
 
                     case Constraint::ONE_TO_ONE:
                     case Constraint::MANY_TO_ONE:
                     case Constraint::MANY_TO_MANY:
-                        $description['required'] = true;
-                        $description['name'] = $constraint['table'];
-                        $description['value'] = null;
-                        $description['maxlength'] = null;
-                        $description['type'] = 'select';
-                        if($constraint['type'] == Constraint::MANY_TO_MANY || $constraint['type'] == Constraint::ONE_TO_MANY) $description['multiple'] = true;
-                        else $description['multiple'] = false;
+
+                        $lastValue = $description->getValue();
+                        $description = new SelectField();
+
+                        $description->required();
+                        $description->name($constraint['table']);
+                        $description->value($lastValue);
+
+                        if($constraint['type'] == Constraint::MANY_TO_MANY || $constraint['type'] == Constraint::ONE_TO_MANY){
+                            $description->multiple();
+                        }
+
                         $content = $constraint['form'] ?? $constraint['field'];
                         $sql = "SELECT {$constraint['field']} AS option, {$content} AS content FROM {$constraint['table']};";
                         $opts = DatabaseFacade::raw($sql);
-                        $description['options'] = [];
+
                         foreach($opts as $o){
-                            if($description['value'] === $o->option){
-                                $isSelected = true;
-                            } else{
-                                $isSelected = false;
+
+                            $optionField = (new OptionField())
+                                ->value($o->option)
+                                ->content($o->content);
+
+                            if($description->getValue() === $o->option){
+                                $optionField->selected();
                             }
-                            $description['options'][] = ["value" => $o->option, "content" => $o->content, 'selected' => $isSelected];
+
+                            $description->option($optionField);
                         }
                         break;
                 }
             }
 
-            $fields[] = $description;
+            $fields[$description->getName()] = $description;
         }
+
         return $fields;
     }
 
     public function build(Model $model)
     {
-        $fields = $this->getFormSchema($model->getSchema()->table());
-        $fieldsCollection = [];
+        $fieldsCollection = $this->getFormSchema($model->getSchema()->table());
 
-        foreach ($fields as $field){
-            $f = new Field();
-            $f->name($field['name']);
-            $f->type($field['type']);
-            $f->class($field['name']);
-            $f->id($field['name']);
-
-            if($field['required'])
-                $f->required();
-
-            if(! is_null($field['value']))
-                $f->value($field['value']);
-
-            if(!is_null($field['maxlength']))
-                $f->maxlength($field['maxlength']);
-
-            if(isset($field['multiple']) && $field['multiple'])
-                $f->multiple();
-
-            if(isset($field['options']) && is_array($field['options']))
-                foreach ($field['options'] as $option)
-                    $f->option($option['value'], $option['content'], $option['selected']);
-
-            $f->label();
-            $f->placeholder($field['name']);
-
-            $fieldsCollection[$field['name']] = $f;
-        }
-        $fieldsCollection[array_keys($fieldsCollection)[0]]->focus();
         return $this->hydrate($fieldsCollection, $model);
     }
 

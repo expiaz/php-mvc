@@ -23,7 +23,7 @@ class IndexSchema extends Schema {
 
         $table->field('rate')
             ->type('int')
-            ->length(2);
+            ->length(10);
 
         $table->field('realisateur')
             ->type('int')
@@ -36,10 +36,10 @@ class IndexSchema extends Schema {
 
         $table->field('vote')
             ->type('int')
-            ->length('2');
+            ->length(10);
 
         $table->field('affiche')
-            ->type('varchar');
+            ->type('file');
 
         parent::__construct($table);
     }

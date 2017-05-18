@@ -25,6 +25,10 @@ final class Config implements ArrayAccess, MagicAccessInterface {
             ],
             'url' => [
                 'base' => '/'
+            ],
+            'upload' => [
+                'path' => 'upload',
+                'size' => 1000000
             ]
         ];
 

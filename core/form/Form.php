@@ -2,6 +2,9 @@
 
 namespace Core\Form;
 
+use Core\Form\Field\AbstractField;
+use Core\Form\Field\AbstractInputField;
+use Core\Form\Field\Input\SubmitInput;
 use Core\Http\Request;
 use Core\Mvc\Model\Model;
 use Core\Utils\DataContainer;
@@ -36,10 +39,15 @@ class Form{
         }
     }
 
-    public function field(Field $field): Form
+    public function field(AbstractField $field): Form
     {
-        if($field->type === 'submit')
-            $this->hasSubmitButton = true;
+        if($field->getFieldType() === AbstractField::INPUT){
+            if($field->getType() === AbstractInputField::SUBMIT){
+                $this->hasSubmitButton = true;
+            } else if($field->getType() === AbstractInputField::FILE){
+                $this->enctype(AbstractInputField::FILE);
+            }
+        }
 
         $this->fields[] = $field;
         return $this;
@@ -95,7 +103,8 @@ class Form{
         if(! is_null($this->action)){
             $out .= " action=\"{$this->action}\"";
         } else {
-            $out .= " action=\"\"";
+            $action = \Url::create(\Request::getUrl());
+            $out .= " action=\"{$action}\"";
         }
 
         if(! is_null($this->enctype)){
@@ -112,15 +121,18 @@ class Form{
 
         $out .= ">";
 
-        if(!$this->hasSubmitButton){
-            $this->field((new Field())->type('submit')->name('submit')->value('submit'));
+        if(! $this->hasSubmitButton){
+            $this->field((new SubmitInput())
+                ->name('submit')
+                ->value('submit'));
         }
 
-        $out .= implode('<br/>', array_map(function(Field $f){
-            return $f->create();
+        $out .= implode('<br/>', array_map(function(AbstractField $f){
+            return $f->build();
         }, $this->fields) );
 
         $out .= "</form>";
+
         return $out;
     }
 
@@ -130,26 +142,26 @@ class Form{
         return $this->build();
     }
 
-    private function bindInputEntry(Field $input, $entry)
+    private function hydrateModel(AbstractField $input)
     {
-        switch($input->getType()){
-            case 'submit':
-                break;
-            default:
-                $fieldName = ucfirst(strtolower($input->getName()));
-                $actualValue = $this->model->{"get{$fieldName}"}();
-                if($actualValue === $entry)
-                    return;
-
-                $this->model->{"set{$fieldName}"}($entry);
-                $input->value($entry);
-                break;
+        if($input->getFieldType() === AbstractField::INPUT && $input->getType() === AbstractInputField::SUBMIT){
+            return;
         }
+
+        $fieldName = ucfirst(strtolower($input->getName()));
+        $actualValue = $this->model->{"get{$fieldName}"}();
+        $fieldEntry = $input->getValue();
+
+        if($actualValue === $fieldEntry)
+            return;
+
+        $this->model->{"set{$fieldName}"}($fieldEntry);
     }
 
     public function handleRequest(Request $request)
     {
         $method = strtolower($this->method);
+
         switch ($method){
             case 'get':
                 $payload = $request->getGet();
@@ -162,20 +174,24 @@ class Form{
         }
 
         foreach ($this->fields as $field) {
-            $entry = $payload[$field->getName()];
+            $entry = isset($payload[$field->getName()]) && strlen($payload[$field->getName()]) > 0 ? $payload[$field->getName()] : null;
 
             if(! $field->validateEntry($entry)){
                 $this->isSubmitted = false;
-                return;
+                return false;
             }
         }
 
         foreach ($this->fields as $field){
-            $entry = $payload[$field->getName()];
-            $this->bindInputEntry($field,$entry);
+            $entry = isset($payload[$field->getName()]) && strlen($payload[$field->getName()]) > 0 ? $payload[$field->getName()] : null;
+
+            $field->bindEntry($entry);
+            $this->hydrateModel($field);
         }
 
         $this->isSubmitted = true;
+
+        return true;
 
     }
 

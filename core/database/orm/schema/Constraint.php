@@ -2,8 +2,6 @@
 
 namespace Core\Database\Orm\Schema;
 
-use Core\Database\Database;
-
 class Constraint implements Statementizable, Schematizable {
 
     private $table;
@@ -27,7 +25,7 @@ class Constraint implements Statementizable, Schematizable {
 
     private $name;
 
-    public function __construct($table, $field, $name = null)
+    public function __construct(Table $table, Field $field, $name = null)
     {
         $this->name = $name;
         $this->table = $table;

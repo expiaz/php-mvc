@@ -46,7 +46,6 @@ final class Database{
     public function execute(string $sql, array $parameters = []): bool
     {
         $query = $this->pdo->prepare($sql);
-        var_dump($query);
         return $query->execute($parameters);
     }
 

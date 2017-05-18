@@ -2,6 +2,8 @@
 
 namespace Core\Database\Orm\Schema;
 
+use Core\Form\Field\AbstractInputField;
+
 class Field implements Statementizable, Schematizable {
 
     private $table;
@@ -36,7 +38,7 @@ class Field implements Statementizable, Schematizable {
         switch(strtolower($type)){
             case 'file':
             case 'image':
-                $formType = 'FILE';
+                $formType = AbstractInputField::FILE;
             case 'path':
             case 'url':
                 $type = 'TEXT';
@@ -44,7 +46,7 @@ class Field implements Statementizable, Schematizable {
                 break;
             case 'boolean':
                 $type = 'TINYINT';
-                $formType = 'BOOLEAN';
+                $formType = AbstractInputField::BOOLEAN;
                 $this->length(1);
                 break;
         }

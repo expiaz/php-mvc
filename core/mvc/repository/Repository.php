@@ -3,6 +3,7 @@
 namespace Core\Mvc\Repository;
 
 use Core\Database\Orm\Schema\Table;
+use Core\Exception\SqlAlterException;
 use Core\Mvc\Schema\Schema;
 use Core\Database\Database;
 use Core\Mvc\Model\Model;
@@ -118,7 +119,11 @@ abstract class Repository{
     public function persist(Model $o)
     {
         if(is_null($o->getId())){
-            return $this->update($o);
+            return $this->insert($o);
+        }
+        if( (int) $o->getId() <= 0 ){
+            $o->setId(NULL);
+            return $this->insert($o);
         }
 
         $shouldUpdate = $this->find([
@@ -144,7 +149,7 @@ abstract class Repository{
             return false;
         }
 
-        $fields = implode(' AND ',
+        $fields = implode(', ',
             array_map(
                 function(string $e):string {
                     return sprintf("%s = :%s",$e,$e);
@@ -166,7 +171,12 @@ abstract class Repository{
         echo "sql $sql\n";
         */
 
-        return $this->database->execute($sql, $values) ? $this->getLastInsertId() : false;
+        if($this->database->execute($sql, $values)){
+            return $o->getId();
+        }
+
+        $errorFrom = get_class($o);
+        throw new SqlAlterException("[Repository::update] $errorFrom update fails with $sql and " . print_r($values,true));
     }
 
     public function insert(Model $o)
@@ -192,14 +202,16 @@ abstract class Repository{
         echo "insert\n";
         echo "values " . print_r($values, true) . "\n";;
         echo "sql $sql\n";
-        return;
         */
 
         if($this->database->execute($sql, $values)){
             $o->setId($this->getLastInsertId());
-            return true;
+            return $o->getId();
         }
-        return false;
+
+        $errorFrom = get_class($o);
+        throw new SqlAlterException("[Repository::update] $errorFrom update fails with $sql and " . print_r($values,true));
+
     }
 
 }

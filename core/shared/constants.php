@@ -15,6 +15,7 @@ define('REPOSITORY', APP . 'repository' . DS);
 define('SCHEMA', MODEL . 'schema' . DS);
 define('VIEW', APP . 'view' . DS);
 define('LAYOUT', VIEW . 'layout' . DS);
+define('ASSET', APP . 'assets' . DS);
 
 define('CORE_MVC', CORE . 'mvc' . DS);
 define('CORE_SHARED', CORE . 'shared' . DS);

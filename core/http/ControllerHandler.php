@@ -33,7 +33,9 @@ class ControllerHandler extends Handler{
         $container = container();
 
         try{
+
             $controller = $container->resolve($container->get(Helper::class)->getControllerNs($this->controller));
+
 
             if(!method_exists($controller, $this->action)){
                 throw new \Exception("{$this->action} does not exists in $this->controller");

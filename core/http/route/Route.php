@@ -64,7 +64,7 @@ class Route extends RouterCallee {
             return $e[1];
         }, $p);
         $regex = str_replace('/','\/',$this->route);
-        $this->regex = '|^' . preg_replace('/:([^\/]*)/','([^\/]*)',$regex) . '$|';
+        $this->regex = '|^' . preg_replace('/:([^\/]+)/','([^\/]+)',$regex) . '$|';
     }
 
     public function use($middleware){

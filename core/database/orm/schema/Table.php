@@ -2,6 +2,8 @@
 
 namespace Core\Database\Orm\Schema;
 
+use Core\Database\Orm\Schema\Constraint\InlineConstraint;
+
 class Table implements Statementizable, Schematizable {
 
     private $fields;

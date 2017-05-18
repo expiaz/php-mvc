@@ -128,6 +128,7 @@ class Container implements ArrayAccess, MagicAccessInterface {
     }
 
     private function resolveMvc($key){
+
         if(!$this->exists($key)){
             $matches = [];
             if(!preg_match('/App[\\\](Model|Controller|Schema|Repository)/', $key, $matches))
