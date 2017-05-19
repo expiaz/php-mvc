@@ -204,7 +204,15 @@ class Form{
         }
 
         foreach ($this->fields as $field) {
-            $entry = isset($payload[$field->getName()]) && strlen($payload[$field->getName()]) > 0 ? $payload[$field->getName()] : null;
+            $payloadEntry = $payload[$field->getName()];
+
+            if(! isset($payload[$field->getName()])){
+                $entry = null;
+            } else if(is_string($payloadEntry) && strlen($payloadEntry) === 0){
+                $entry = null;
+            } else {
+                $entry = $payloadEntry;
+            }
 
             if(! $field->validateEntry($entry)){
                 $this->isSubmitted = false;
@@ -213,7 +221,16 @@ class Form{
         }
 
         foreach ($this->fields as $field){
-            $entry = isset($payload[$field->getName()]) && strlen($payload[$field->getName()]) > 0 ? $payload[$field->getName()] : null;
+
+            $payloadEntry = $payload[$field->getName()];
+
+            if(! isset($payload[$field->getName()])){
+                $entry = null;
+            } else if(is_string($payloadEntry) && strlen($payloadEntry) === 0){
+                $entry = null;
+            } else {
+                $entry = $payloadEntry;
+            }
 
             $field->bindEntry($entry);
             $this->hydrateModel($field);

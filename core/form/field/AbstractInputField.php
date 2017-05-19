@@ -101,7 +101,7 @@ abstract class AbstractInputField extends AbstractField{
 
     protected function buildLabel(): string
     {
-        if($this->type !== 'hidden' && $this->type !== 'submit'){
+        if($this->type !== static::HIDDEN && $this->type !== static::SUBMIT){
             return parent::buildLabel();
         }
         return '';

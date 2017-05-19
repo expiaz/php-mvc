@@ -14,11 +14,23 @@ final class Session implements ArrayAccess, MagicAccessInterface {
 
 
     public function activate(){
+        $this->start();
+    }
+
+    public function start(){
         if(static::$on === true)
             return;
 
         session_start();
         static::$on = true;
+    }
+
+    public function stop(){
+        if(static::$on === false)
+            return;
+
+        session_destroy();
+        static::$on = false;
     }
 
     public function __construct()
@@ -34,12 +46,14 @@ final class Session implements ArrayAccess, MagicAccessInterface {
 
     public function set(string $key, $value)
     {
+
         if(!$this->beforeEach($key))
             return;
 
         $this->normalize($key);
 
         $_SESSION[$key] = $value;
+        $this->container[$key] = $value;
     }
 
     public function get(string $key, $default = null)
@@ -57,11 +71,31 @@ final class Session implements ArrayAccess, MagicAccessInterface {
 
     public function exists(string $key)
     {
+
         if(!$this->beforeEach($key))
             return;
 
         $this->normalize($key);
         return isset($_SESSION[$key]);
+    }
+
+    public function delete(string $key){
+        $this->unset($key);
+    }
+
+    public function unset(string $key){
+
+
+
+        if(!$this->beforeEach($key))
+            return;
+
+        $this->normalize($key);
+
+        if($this->exists($key)){
+            unset($_SESSION[$key]);
+            unset($this->container[$key]);
+        }
     }
 
     public function beforeEach(string &$key)
@@ -70,8 +104,7 @@ final class Session implements ArrayAccess, MagicAccessInterface {
     }
 
     public function reset(){
-        session_destroy();
-        static::$on = false;
+        session_unset();
     }
 
 }

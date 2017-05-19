@@ -42,6 +42,17 @@ final class Cookie implements ArrayAccess, MagicAccessInterface {
         return isset($_COOKIE[$key]);
     }
 
+    public function unset(string $key){
+
+        if(!$this->beforeEach($key))
+            return;
+
+        $this->normalize($key);
+        if($this->exists($key)){
+            unset($_COOKIE[$key]);
+        }
+    }
+
     public function delete(string $k){
         $this->unset($k);
     }

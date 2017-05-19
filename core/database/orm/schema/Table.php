@@ -16,11 +16,14 @@ class Table implements Statementizable, Schematizable {
     private $keyConstraint;
     private $uniqueConstraint;
 
+    private $constraintFields;
+
     public function __construct(string $name)
     {
         $this->name = $name;
         $this->fields = [];
         $this->constraints = [];
+        $this->constraintFields = [];
     }
 
     public function getName(){
@@ -71,6 +74,11 @@ class Table implements Statementizable, Schematizable {
 
     public function addConstraint(Constraint $constraint){
         $this->constraints[] = $constraint;
+        /*if($constraint->getType() === Constraint::MANY_TO_MANY){
+            $f = new Field($this, $constraint->getName());
+            $f->isConstraint();
+            $this->constraintFields[] = $f;
+        }*/
     }
 
     public function defaultSelection(Field $f){

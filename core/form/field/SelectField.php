@@ -49,9 +49,16 @@ class SelectField extends AbstractField {
 
     public function build(): string{
 
-        $baseProps = $this->buildCommonProps();
 
         $out = "<select";
+
+        if(! is_null($this->name)){
+            if($this->multiple){
+                $out .= " name=\"{$this->name}[]\"";
+            } else{
+                $out .= " name=\"{$this->name}\"";
+            }
+        }
 
         if($this->multiple)
             $out .= " multiple";
@@ -59,7 +66,25 @@ class SelectField extends AbstractField {
         if(! is_null($this->size))
             $out .= " size=\"{$this->size}\"";
 
-        $out .= $baseProps;
+        if(! is_null($this->id))
+            $out .= " id=\"{$this->id}\"";
+
+        if(! is_null($this->class))
+            $out .= " class=\"{$this->class}\"";
+
+        if($this->required)
+            $out .= " required";
+
+        if($this->disabled)
+            $out .= " disabled";
+
+        if($this->focus){
+            $out .= " autofocus";
+        }
+
+        foreach ($this->data as $data => $value){
+            $out .= " data-{$data}=\"{$value}\"";
+        }
 
         $out .= ">";
 
@@ -77,6 +102,29 @@ class SelectField extends AbstractField {
 
     }
 
+    public function bindEntry($entry)
+    {
+        $this->value($entry);
+
+        if(is_array($entry)){
+            foreach ($this->options as $option){
+                foreach ($entry as $e){
+                    if($option->getValue() == $e){
+                        $option->selected();
+                    }
+                }
+            }
+            return;
+        }
+
+        foreach ($this->options as $option){
+            if($option->getValue() == $entry){
+                $option->selected();
+            }
+        }
+
+    }
+
     public function validateEntry($entry): bool
     {
         if(is_null($entry)){
@@ -84,6 +132,18 @@ class SelectField extends AbstractField {
                 return false;
             }
             return true;
+        }
+
+        if(is_array($entry)){
+            foreach ($this->options as $option){
+                foreach ($entry as $e){
+                    if($option->getValue() == $e){
+                        $option->selected();
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         foreach ($this->options as $option){

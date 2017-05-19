@@ -42,12 +42,10 @@ final class View
             $vars['title'] = \Request::getUrl();
         }
 
-        /*$vars['connected'] = [
-            'link' => $this->container[Session::class]->exists('connected') ? (new Url('index', 'deconnexion'))->build() : (new Url('index', 'connexion'))->build(),
-            'message' => $this->container[Session::class]->exists('connected') ? 'deconnexion' : 'connexion'
+        $vars['connected'] = [
+            'link' => $this->container[Session::class]->exists('connected_as') ? (new Url('/deco'))->build() : (new Url('/auth'))->build(),
+            'message' => $this->container[Session::class]->exists('connected_as') ? 'deconnexion' : 'connexion'
         ];
-
-        $vars['connection_link'] = "<a href=\"{$vars['connected']['link']}\">{$vars['connected']['message']}</a>";*/
 
         $vars['home'] = WEBROOT;
 

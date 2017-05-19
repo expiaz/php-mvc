@@ -1,0 +1,3 @@
+<h1>Ajouter un acteur</h1>
+<?=$addForm?>
+<?=$error??''?>

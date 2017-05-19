@@ -5,6 +5,7 @@ namespace Core\Form\Field\Input;
 use Core\Config;
 use Core\Form\Field\Input;
 use Core\Form\Field\AbstractInputField;
+use FilesystemIterator;
 
 class FileInput extends AbstractInputField {
 
@@ -121,7 +122,7 @@ class FileInput extends AbstractInputField {
             return false;
         }
 
-        $size = filesize($fileData['tmp_name']);
+        $size = @filesize($fileData['tmp_name']);
         $extension = strrchr($fileData['name'], '.');
 
         if($this->maxsize > 0 && $size > $this->maxsize){
@@ -147,15 +148,34 @@ class FileInput extends AbstractInputField {
     }
 
     public function bindEntry($entry){
+        if(! isset($_FILES[$this->name])){
+            return;
+        }
+
+
+
         $fileData = $_FILES[$this->name];
         $filename = basename($fileData['name']);
+
+        /*
         $filename = strtr($filename,
             'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ',
             'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
         $filename =  preg_replace('/([^.a-z0-9]+)/i', '-', $filename);
+        */
+
         $uploadDirectory = ASSET . $this->path;
+
+        $fi = new FilesystemIterator($uploadDirectory, FilesystemIterator::SKIP_DOTS);
+        $numberOfFiles = iterator_count($fi);
+        $extension = strrchr($filename, '.');
+        $numberOfFiles += 1;
+        $filename = $numberOfFiles . $extension;
+
         move_uploaded_file($fileData['tmp_name'], $uploadDirectory . $filename);
-        $this->value(trim($this->path, DS)  . '/' . $filename);
+
+        $webPath = trim(str_replace(DS, '/',$this->path), '/');
+        $this->value( $webPath . '/' . $filename);
     }
 
 }

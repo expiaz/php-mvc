@@ -99,7 +99,7 @@ final class FormBuilder{
                     case Constraint::PRIMARY_KEY:
                         if($field['auto']){
                             $description = new HiddenInput();
-                            $description->label($field['name']);
+                            //$description->label($field['name']);
                             $description->name($field['name']);
 
                             if(! is_null($field['default'])){
@@ -130,33 +130,56 @@ final class FormBuilder{
                     case Constraint::MANY_TO_ONE:
                     case Constraint::MANY_TO_MANY:
 
-                        $lastValue = $description->getValue();
-                        $description = new SelectField();
+                        $relationnalField = new SelectField();
 
-                        $description->required();
-                        $description->name($constraint['table']);
-                        $description->value($lastValue);
-
-                        if($constraint['type'] == Constraint::MANY_TO_MANY || $constraint['type'] == Constraint::ONE_TO_MANY){
-                            $description->multiple();
+                        if($constraint['type'] === Constraint::MANY_TO_MANY){
+                            $relationnalField->label($constraint['table']);
+                            $relationnalField->name($constraint['table']);
+                            $relationnalField->data('table', $constraint['table']);
+                            $relationnalField->data('field', $constraint['field']);
+                            $relationnalField->data('constraint', $field['name']);
+                            $relationnalField->multiple();
+                            $fields[$relationnalField->getName()] = $relationnalField;
+                        } else {
+                            $relationnalField->label($description->getLabel());
+                            $relationnalField->required();
+                            $relationnalField->name($description->getName());
+                            $relationnalField->value($description->getValue());
+                            $description = $relationnalField;
                         }
 
-                        $content = $constraint['form'] ?? $constraint['field'];
-                        $sql = "SELECT {$constraint['field']} AS option, {$content} AS content FROM {$constraint['table']};";
+
+                        //$thisTable = $baseSchema['table'];
+                        //$thisField = "{$thisTable}.{$field['name']}";
+                        $constraintTable = $constraint['table'];
+                        $constraintField = "{$constraintTable}.{$constraint['field']}";
+                        //$relationnalTable = "{$thisTable}_{$constraintTable}";
+                        //$relationnalThisField = "{$relationnalTable}.{$thisField}_id";
+                        //$relationnalConstraintField = "{$relationnalTable}.{$constraintField}_id";
+                        $formField =  "{$constraintTable}." . ($constraint['form'] ?? $constraint['field']);
+
+                        $sql = sprintf("SELECT %s AS id, %s AS content FROM %s;", $constraintField, $formField, $constraintTable);
                         $opts = DatabaseFacade::raw($sql);
+
+                        //getall
+                        //"SELECT {$constraintField} AS id, {$formField} AS content FROM {$constraintTable}";
+
+                        //hydrate
+                        //"SELECT {$constraintField} AS id, {$formField} AS content FROM {$thisTable}, {$constraintTable}, {$relationnalTable} WHERE {$thisField} = {$relationnalThisField} AND {$constraintField} = {$relationnalConstraintField} AND {$thisField} = {$field['value']}";
 
                         foreach($opts as $o){
 
                             $optionField = (new OptionField())
-                                ->value($o->option)
+                                ->value($o->id)
                                 ->content($o->content);
 
-                            if($description->getValue() === $o->option){
+                            if($relationnalField->getValue() === $o->id){
                                 $optionField->selected();
                             }
 
-                            $description->option($optionField);
+                            $relationnalField->option($optionField);
                         }
+
                         break;
                 }
             }
@@ -176,12 +199,69 @@ final class FormBuilder{
 
     private function hydrate(array &$fieldCollection, Model $model){
 
-        $schema = $model->getSchema()->schema();
+        //$schema = $model->getSchema()->schema();
 
-        foreach ($schema['fields'] as $field){
-            $value = $model->{'get' . ucfirst($field['name'])}();
-            $input = $fieldCollection[$field['name']];
-            $input->value($value);
+        foreach ($fieldCollection as $fieldName => $formField){
+            $value = $model->{'get' . ucfirst($fieldName)}();
+            //$schemaField = $schema['fields'][$fieldName] ?? [];
+
+            if($formField instanceof FileInput){
+                //FIXME: nothing or it'll re-upload
+            } else {
+                $formField->bindEntry($value);
+            }
+
+
+
+            /*
+            if(is_array($value) && $formField->getFieldType() === AbstractField::SELECT){
+
+                foreach ($formField->getOptions() as $option) {
+                    if ($option->isSelected()) {
+                        $option->selected(false);
+                    }
+                }
+
+                foreach ($value as $optionSelected){
+                    foreach ($formField->getOptions() as $option){
+                        if($option->getValue() === $optionSelected){
+                            $option->selected();
+                        }
+                    }
+                }
+            } else{
+                $formField->value($value);
+            }
+            */
+
+            /*
+            if(!is_array($value) || ! ($formField->getFieldType() === AbstractField::SELECT) || is_null($formField->getData('table')) || is_null($formField->getData('field')) || is_null($formField->getData('constraint')) ){
+                $formField->value($value);
+                next($fieldCollection);
+            }
+
+            $thisTable = $schema['table'];
+            $thisField = "{$thisTable}.{$formField->getData('constraint')}";
+            $constraintTable = $formField->getData('table');
+            $constraintField = "{$constraintTable}.{$formField->getData('field')}";
+            $relationnalTable = "{$thisTable}_{$constraintTable}";
+            $relationnalThisField = "{$relationnalTable}.{$thisField}_id";
+            $relationnalConstraintField = "{$relationnalTable}.{$constraintField}_id";
+
+            $sql = sprintf(
+                "SELECT %s AS id FROM %s, %s, %s WHERE %s = %s AND %s = %s AND %s = %s",
+                $constraintField,
+                $thisTable,
+                $constraintTable,
+                $relationnalTable,
+                $thisField,
+                $relationnalThisField,
+                $constraintField,
+                $relationnalConstraintField,
+                $thisField,
+                $value
+            );*/
+
         }
 
         return new Form($fieldCollection, $model);

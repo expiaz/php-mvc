@@ -13,9 +13,22 @@ class FilmModel extends Model {
     private $realisateur;
     private $description;
     private $affiche;
+    private $acteur = [];
+
+    public function getActeurModel(){
+        return $this->getRepository()->getActeurs($this->acteur);
+    }
+
+    public function getRealisateurModel(){
+        return $this->getRepository()->getRealisateur($this->realisateur);
+    }
 
     public function getLink(){
         return UrlFacade::create("/film/{$this->getId()}");
+    }
+
+    public function getEditLink(){
+        return UrlFacade::create("/film/edit/{$this->getId()}");
     }
 
     /**
@@ -123,6 +136,22 @@ class FilmModel extends Model {
     {
         $this->setter('affiche', $affiche);
         $this->affiche = $affiche;
+    }
+
+    /**
+     * @return array
+     */
+    public function getActeur(): array
+    {
+        return $this->acteur;
+    }
+
+    /**
+     * @param array $acteurs
+     */
+    public function setActeur($acteurs = [])
+    {
+        $this->acteur = (array) $acteurs;
     }
 
 }

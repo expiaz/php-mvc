@@ -2,6 +2,7 @@
 namespace Core\Mvc\Model;
 
 use Core\Database\Orm\Schema\Table;
+use Core\Mvc\Repository\Repository;
 use Core\Mvc\Schema\Schema;
 
 abstract class Model{
@@ -11,11 +12,13 @@ abstract class Model{
     protected $id;
     protected $schema;
     protected $table;
+    protected $repository;
 
     private $hydrated;
 
-    public function __construct(Schema $schema)
+    public function __construct(Repository $repository, Schema $schema)
     {
+        $this->repository = $repository;
         $this->schema = $schema;
         $this->table = $schema->table();
     }
@@ -59,8 +62,8 @@ abstract class Model{
         }
     }
 
-    public function isReady(){
-        $this->hydrated = true;
+    public function isReady(bool $ready = true){
+        $this->hydrated = $ready;
     }
 
     public function getId(){
@@ -70,6 +73,10 @@ abstract class Model{
     public function setId($id){
         $this->setter('id', $id);
         $this->id = $id;
+    }
+
+    public function getRepository(){
+        return $this->repository;
     }
 
     public function getSchema(): Schema{

@@ -24,6 +24,7 @@ class UserModel extends Model {
      */
     public function setName($name)
     {
+        parent::setter('name', $name);
         $this->name = $name;
     }
 
@@ -41,6 +42,7 @@ class UserModel extends Model {
      */
     public function setLogin($login)
     {
+        parent::setter('login', $login);
         $this->login = $login;
     }
 
@@ -58,6 +60,7 @@ class UserModel extends Model {
      */
     public function setPassword($password)
     {
+        parent::setter('password', $password);
         $this->password = $password;
     }
 

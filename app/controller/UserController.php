@@ -22,7 +22,7 @@ class UserController extends Controller{
 
     }
 
-    public function middleware(Request $request, Response $response, $next){
+    public function middleware(callable $next, Request $request, Response $response){
         if(! SessionFacade::exists('connected_as'))
             return RouterFacade::redirect(UrlFacade::create('/auth'));
         return $next($request, $response);
@@ -72,6 +72,11 @@ class UserController extends Controller{
         ]);
     }
 
+    public function deco(Request $request, Response $response){
+        SessionFacade::delete('connected_as');
+        return RouterFacade::redirect(UrlFacade::create('/auth'));
+    }
+
     public function subscribe(Request $request, Response $response){
         $repo = $this->getRepository();
 
@@ -108,8 +113,8 @@ class UserController extends Controller{
         ]);
     }
 
-    public function alreadyCoMiddleware(Request $request, Response $response, callable $next){
-        if(SessionFacade::has('connected_as')){
+    public function alreadyCoMiddleware(callable $next, Request $request, Response $response) {
+        if(SessionFacade::exists('connected_as')){
             return RouterFacade::redirect(UrlFacade::create('/'));
         }
         return $next($request, $response);

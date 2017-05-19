@@ -20,6 +20,8 @@ class Field implements Statementizable, Schematizable {
     private $constraints;
     private $inlineConstraints;
 
+    private $isConstraint = false;
+
     public function __construct(Table $table, $name)
     {
         $this->table = $table;
@@ -140,6 +142,10 @@ class Field implements Statementizable, Schematizable {
         return $this;
     }
 
+    /*public function isConstraint(){
+        $this->isConstraint = true;
+    }*/
+
 
 
     public function manyToMany($table = null, $field = null, $type = null): Constraint{
@@ -189,7 +195,6 @@ class Field implements Statementizable, Schematizable {
     }
 
 
-
     public function statement()
     {
         $props = [];
@@ -216,6 +221,7 @@ class Field implements Statementizable, Schematizable {
         $schema['null'] = $this->nullable;
         $schema['default'] = $this->default !== null ? $this->default : ($this->nullable ? 'NULL' : 'NOT NULL');
         $schema['auto'] = $this->autoIncrement;
+        //$schema['constraint'] = $this->isConstraint;
         $schema['constraints'] = [];
         foreach ($this->constraints as $c)
             $schema['constraints'][] = $c->schema();

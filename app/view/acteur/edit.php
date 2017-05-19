@@ -1,0 +1,3 @@
+<h1>Edit <?=$acteur->getName()?></h1>
+<?=$editForm?>
+<?=$error??''?>

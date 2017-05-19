@@ -2,12 +2,25 @@
 
 namespace App\Model;
 
+use Core\Facade\Contracts\UrlFacade;
 use Core\Mvc\Model\Model;
 
 class ActeurModel extends Model {
 
     private $name;
     private $films = [];
+
+    public function getLink(){
+        return UrlFacade::create("/acteur/{$this->getId()}");
+    }
+
+    public function getEditLink(){
+        return UrlFacade::create("/acteur/edit/{$this->getId()}");
+    }
+
+    public function getFilmsModel(){
+        return $this->getRepository()->getFilms($this->films);
+    }
 
     /**
      * @return mixed
@@ -22,6 +35,7 @@ class ActeurModel extends Model {
      */
     public function setName($name)
     {
+        parent::setter('name', $name);
         $this->name = $name;
     }
 
@@ -30,6 +44,7 @@ class ActeurModel extends Model {
      */
     public function getFilms(): array
     {
+
         return $this->films;
     }
 
@@ -41,7 +56,7 @@ class ActeurModel extends Model {
         $this->films = $films;
     }
 
-    public function addFilm(FilmModel $film){
+    public function addFilmModel(FilmModel $film){
         $this->films[] = $film;
     }
 

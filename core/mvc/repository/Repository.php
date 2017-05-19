@@ -38,10 +38,10 @@ abstract class Repository{
 
     public function getModel(): Model
     {
-        return (new $this->model($this->schema));
+        return (new $this->model($this, $this->schema));
     }
 
-    private function hydrate(DataContainer $class): Model
+    protected function hydrate(DataContainer $class): Model
     {
 
         $model = $this->getModel();
@@ -173,12 +173,6 @@ abstract class Repository{
             $values[$field] =  $o->{"get" . ucfirst($field)}();
         }
 
-        /*
-        echo "update\n";
-        echo "values " . print_r($values, true) . "\n";;
-        echo "sql $sql\n";
-        */
-
         if($this->database->execute($sql, $values)){
             return $o->getId();
         }
@@ -205,12 +199,6 @@ abstract class Repository{
         }
 
         $sql = sprintf("INSERT INTO `%s` (`%s`) VALUES (:%s)", $o->getTable()->getName(), implode('`, `', $fields), implode(', :', $fields));
-
-        /*
-        echo "insert\n";
-        echo "values " . print_r($values, true) . "\n";;
-        echo "sql $sql\n";
-        */
 
         if($this->database->execute($sql, $values)){
             $o->setId($this->getLastInsertId());

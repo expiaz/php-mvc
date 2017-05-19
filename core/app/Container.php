@@ -137,16 +137,16 @@ class Container implements ArrayAccess, MagicAccessInterface {
             switch ($matches[1]){
                 case 'Model':
                     $this->set($key, function (Container $c) use ($key):Model {
-                        return new $key($c->resolve($c->get(Helper::class)->getSchemaNs($key)));
+                        return new $key($c->resolve($c->get(Helper::class)->getRepositoryNs($key)), $c->resolve($c->get(Helper::class)->getSchemaNs($key)));
                     });
                     break;
                 case 'Controller':
-                    $this->set($key, $this->singleton(function (Container $c) use ($key):Controller {
+                    $this->set($key, $this->singleton(function (Container $c) use ($key): Controller {
                         return new $key($c, $c->resolve($c->get(Helper::class)->getRepositoryNs($key)));
                     }));
                     break;
                 case 'Repository':
-                    $this->set($key, $this->singleton(function (Container $c) use ($key):Repository {
+                    $this->set($key, $this->singleton(function (Container $c) use ($key): Repository {
                         return new $key($c->get(Database::class), $c->get(Helper::class)->getModelNs($key), $c->resolve($c->get(Helper::class)->getSchemaNs($key)) );
                     }));
                     break;

@@ -13,6 +13,8 @@ class Constraint implements Statementizable, Schematizable {
     private $type;
     private $mathematicalConditional;
 
+    private $relationnalFields;
+
     const PRIMARY_KEY = 1;
     const ONE_TO_ONE = 2;
     const MANY_TO_ONE = 3;
@@ -30,6 +32,11 @@ class Constraint implements Statementizable, Schematizable {
         $this->name = $name;
         $this->table = $table;
         $this->field = $field;
+        $this->relationnalFields = [];
+    }
+
+    public function setType($type){
+        $this->type = $type;
     }
 
     public function getType(){

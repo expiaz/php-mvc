@@ -25,7 +25,7 @@ abstract class AbstractField{
     protected $class;
     protected $data;
 
-    private $focus;
+    protected $focus;
 
     protected function __construct($fieldType)
     {
@@ -144,7 +144,7 @@ abstract class AbstractField{
 
 
     protected function buildLabel(): string{
-        if($this->label){
+        if(! is_null($this->label)){
             $this->id = ! is_null($this->id) ? $this->id : $this->name;
             return "<label for=\"{$this->id}\">{$this->name}</label><br/>";
         }

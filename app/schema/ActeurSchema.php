@@ -16,7 +16,7 @@ class ActeurSchema extends Schema {
 
         $table->field('name')
             ->type('varchar')
-            ->length(255);
+            ->length(75);
 
         parent::__construct($table);
     }

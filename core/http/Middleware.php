@@ -18,14 +18,14 @@ class Middleware extends RouterCallee {
     }
 
     public function setNext($next){
-        $this->next = function (Request $request, Response $response) use ($next){
-            return $next->apply($request, $response);
+        $this->next = function (... $args) use ($next){
+            return $next->apply(... $args);
         };
     }
 
     public function apply(... $args)
     {
-        return parent::apply($args[0], $args[1], $this->next);
+        return parent::apply($this->next, ... $args);
     }
 
 }

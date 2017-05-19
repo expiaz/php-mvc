@@ -59,9 +59,9 @@ class OptionField{
         return $this->selected;
     }
 
-    public function selected()
+    public function selected($selected = true)
     {
-        $this->selected = true;
+        $this->selected = $selected;
         return $this;
     }
 
