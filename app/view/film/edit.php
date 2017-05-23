@@ -1,3 +1,0 @@
-<h1>Edit <?=$film->getTitle()?></h1>
-<?=$editForm?>
-<?=$error??''?>

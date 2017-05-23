@@ -26,9 +26,6 @@ class IndexController extends Controller{
 
     public function create(Request $request, Response $response){
         $user = $this->container[UserSchema::class]->statement();
-        $acteur = $this->container[ActeurSchema::class]->statement();
-        $acteur = $this->container[RealisateurSchema::class]->statement();
-        $film = $this->container[FilmSchema::class]->statement();
     }
 
     public function error404(Request $request, Response $response){

@@ -1,3 +1,0 @@
-<h1>Edit <?=$realisateur->getName()?></h1>
-<?=$editForm?>
-<?=$error??''?>
