@@ -93,4 +93,12 @@ trait CollectionAccess{
         return $this->container;
     }
 
+    public function keys(){
+        return array_keys($this->container);
+    }
+
+    public function values(){
+        return array_values($this->container);
+    }
+
 }

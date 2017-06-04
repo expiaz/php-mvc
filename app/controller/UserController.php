@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Model\EntrepriseModel;
+use App\Repository\EntrepriseRepository;
+use App\Repository\EtudiantRepository;
 use Core\Exception\NoDataFoundException;
 use Core\Facade\Contracts\FormFacade;
 use Core\Facade\Contracts\RouterFacade;
@@ -25,6 +28,12 @@ class UserController extends Controller{
     public function middleware(callable $next, Request $request, Response $response){
         if(! SessionFacade::exists('connected_as'))
             return RouterFacade::redirect(UrlFacade::create('/auth'));
+        return $next($request, $response);
+    }
+
+    public function admin(callable $next, Request $request, Response $response){
+        if(! SessionFacade::exists('admin'))
+            return RouterFacade::redirect(UrlFacade::create('/profile'));
         return $next($request, $response);
     }
 
@@ -54,12 +63,34 @@ class UserController extends Controller{
 
             try{
                 $user = $this->getRepository()->auth($credentials['login'], $credentials['password']);
-                SessionFacade::set('connected_as', $user->getId());
+                $co_as = null;
+                $co_status = -1;
+
+                try{
+                    $etudiant = $this->getContainer()->get(EtudiantRepository::class)->getAssociedEtudiant($user->getId());
+                    $co_as = $etudiant->getId();
+                    $co_status = 1;
+                } catch (NoDataFoundException $e){
+                    try{
+                        $etp = $this->getContainer()->get(EntrepriseRepository::class)->getAssociedEntreprise($user->getId());
+                        $co_as = $etp->getId();
+                        $co_status = 2;
+                    } catch (NoDataFoundException $e){
+                        $co_as = $user->getId();
+                        $co_status = 3;
+                    }
+                }
+
+                SessionFacade::set('connected_as', $co_as);
+                SessionFacade::set('connected_status', $co_status);
+
+                if($user->isAdmin()){
+                    SessionFacade::set('admin', true);
+                }
                 return RouterFacade::redirect(UrlFacade::create('/'));
             } catch (NoDataFoundException $e){
                 return ViewFacade::render('user/auth', [
                     'authForm' => $f,
-                    'subscribeLink' => UrlFacade::create('/subscribe'),
                     'error' => 'Bad credentials'
                 ]);
             }
@@ -67,13 +98,15 @@ class UserController extends Controller{
         }
 
         return \View::render('user/auth', [
-            'authForm' => $f,
-            'subscribeLink' => UrlFacade::create('/subscribe'),
+            'authForm' => $f
         ]);
     }
 
     public function deco(Request $request, Response $response){
         SessionFacade::delete('connected_as');
+        if(SessionFacade::exists('admin')){
+            SessionFacade::delete('admin');
+        }
         return RouterFacade::redirect(UrlFacade::create('/auth'));
     }
 

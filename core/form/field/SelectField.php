@@ -102,13 +102,13 @@ class SelectField extends AbstractField {
 
     }
 
-    public function bindEntry($entry)
-    {
-        $this->value($entry);
+    public function value($value){
 
-        if(is_array($entry)){
+        $this->value = $value;
+
+        if(is_array($value)){
             foreach ($this->options as $option){
-                foreach ($entry as $e){
+                foreach ($value as $e){
                     if($option->getValue() == $e){
                         $option->selected();
                     }
@@ -118,11 +118,17 @@ class SelectField extends AbstractField {
         }
 
         foreach ($this->options as $option){
-            if($option->getValue() == $entry){
+            if($option->getValue() == $value){
                 $option->selected();
             }
         }
 
+        return $this;
+    }
+
+    public function bindEntry($entry)
+    {
+        $this->value($entry);
     }
 
     public function validateEntry($entry): bool

@@ -3,6 +3,7 @@
 namespace Core\Mvc\Repository;
 
 use Core\Database\Orm\Schema\Table;
+use Core\Database\UppletContainer;
 use Core\Exception\NoDataFoundException;
 use Core\Exception\SqlAlterException;
 use Core\Mvc\Schema\Schema;
@@ -41,14 +42,27 @@ abstract class Repository{
         return (new $this->model($this, $this->schema));
     }
 
-    protected function hydrate(DataContainer $class): Model
+    public function getDatabase(): Database{
+        return $this->database;
+    }
+
+    protected function toCamelCase(string $input, bool $lcfirst = false, string $separator = '_'){
+        $out =  str_replace($separator, '', ucwords($input, $separator));
+        return $lcfirst ? lcfirst($out) : $out;
+    }
+
+    protected function hydrate(UppletContainer $class): Model
     {
 
         $model = $this->getModel();
+
         $schema = $model->getSchemaDefintion();
         foreach ($schema['fields'] as $field){
-            if(property_exists($model, $field['name']))
-                $model->{ "set" . ucfirst( $field['name'] ) }( $class->{ "get" . ucfirst( $field['name'] ) }() );
+            if(property_exists($model, $field['name'])){
+                //echo get_class($model) . "->set{$this->toCamelCase($field['name'] )} = {$class->{ "get" . ucfirst($field['name']) }()}\n";
+
+                $model->{ "set" . $this->toCamelCase($field['name'] ) }( $class->{ "get" . ucfirst($field['name']) }() );
+            }
         }
         $model->isReady();
         return $model;
@@ -65,9 +79,11 @@ abstract class Repository{
     public function &fetchAll(string $sql, array &$param = []): array
     {
         $upplets = $this->database->fetchAll($sql, $param);
-        $hydratedUpplets = array_map(function(DataContainer $e){
+
+        $hydratedUpplets = array_map(function(UppletContainer $e){
             return $this->hydrate($e);
         }, $upplets);
+
         return $hydratedUpplets;
     }
 
@@ -149,7 +165,7 @@ abstract class Repository{
         return $this->insert($o);
     }
 
-    public function update(Model $o)
+    public function update($o)
     {
         $modifications = $o->getModifications();
 
@@ -181,7 +197,7 @@ abstract class Repository{
         throw new SqlAlterException("[Repository::update] $errorFrom update fails with $sql and " . print_r($values,true));
     }
 
-    public function insert(Model $o)
+    public function insert($o)
     {
         $fieldsSchema = $o->getSchemaDefintion()['fields'];
 
@@ -195,7 +211,7 @@ abstract class Repository{
         $values = [];
         foreach ($fieldsSchema as $fieldSchema){
             $name = ucfirst($fieldSchema['name']);
-            $values[$fieldSchema['name']] =  $o->{"get{$name}"}();
+            $values[$fieldSchema['name']] =  $o->{"get{$this->toCamelCase($name)}"}();
         }
 
         $sql = sprintf("INSERT INTO `%s` (`%s`) VALUES (:%s)", $o->getTable()->getName(), implode('`, `', $fields), implode(', :', $fields));

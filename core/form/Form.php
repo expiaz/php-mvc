@@ -5,13 +5,17 @@ namespace Core\Form;
 use Core\Form\Field\AbstractField;
 use Core\Form\Field\AbstractInputField;
 use Core\Form\Field\Input\SubmitInput;
+use Core\Form\Field\RawField;
 use Core\Http\Request;
 use Core\Mvc\Model\Model;
 use Core\Utils\DataContainer;
 
-class Form{
+class Form
+{
 
     private $fields;
+    private $fieldsMap;
+
     private $class;
     private $id;
     private $enctype;
@@ -19,6 +23,8 @@ class Form{
     private $method;
     private $hasSubmitButton;
     private $isSubmitted;
+
+    private $_waitingRawHtml;
 
     private $model;
 
@@ -31,26 +37,48 @@ class Form{
         $this->hasSubmitButton = false;
         $this->action = '';
         $this->fields = [];
+        $this->fieldsMap = [];
         $this->model = $model ? $model : new DataContainer();
         $this->isSubmitted = false;
 
-        foreach ($fieldCollection as $field){
+        foreach ($fieldCollection as $field) {
             $this->field($field);
         }
     }
 
     public function field(AbstractField $field): Form
     {
-        if($field->getFieldType() === AbstractField::INPUT){
-            if($field->getType() === AbstractInputField::SUBMIT){
+        if ($field->getFieldType() === AbstractField::INPUT) {
+            if ($field->getType() === AbstractInputField::SUBMIT) {
                 $this->hasSubmitButton = true;
-            } else if($field->getType() === AbstractInputField::FILE){
+            } else if ($field->getType() === AbstractInputField::FILE) {
                 $this->enctype(AbstractInputField::FILE);
             }
         }
 
+        if ($this->_waitingRawHtml !== NULL) {
+            $field->prependBefore($this->_waitingRawHtml);
+            $this->_waitingRawHtml = null;
+        }
+
         $this->fields[] = $field;
+        $this->fieldsMap[$field->getName()] = $field;
         return $this;
+    }
+
+    public function raw(String $html)
+    {
+        if (count($this->fields) === 0) {
+            $this->_waitingRawHtml = $html;
+            return;
+        }
+
+        $this->fields[count($this->fields) - 1]->appendAfter($html);
+    }
+
+    public function getField(string $name)
+    {
+        return $this->fieldsMap[$name] ?? NULL;
     }
 
     public function class(string $class): Form
@@ -59,7 +87,8 @@ class Form{
         return $this;
     }
 
-    public function getClass(){
+    public function getClass()
+    {
         return $this->class;
     }
 
@@ -70,14 +99,15 @@ class Form{
         return $this;
     }
 
-    public function getId(){
+    public function getId()
+    {
         return $this->id;
     }
 
 
     public function enctype(string $enctype): Form
     {
-        switch($enctype){
+        switch ($enctype) {
             case 'file':
                 $this->enctype = 'multipart/form-data';
                 break;
@@ -88,7 +118,8 @@ class Form{
         return $this;
     }
 
-    public function getEnctype(){
+    public function getEnctype()
+    {
         return $this->enctype;
     }
 
@@ -99,7 +130,8 @@ class Form{
         return $this;
     }
 
-    public function getAction(){
+    public function getAction()
+    {
         return $this->action;
     }
 
@@ -110,7 +142,8 @@ class Form{
         return $this;
     }
 
-    public function getMethod(){
+    public function getMethod()
+    {
         return $this->method;
     }
 
@@ -119,42 +152,43 @@ class Form{
     {
         $out = '<form';
 
-        if(! is_null($this->method)){
+        if (!is_null($this->method)) {
             $out .= " method=\"{$this->method}\"";
         } else {
             $out .= " method=\"POST\"";
         }
 
-        if(! is_null($this->action)){
+        if (!is_null($this->action)) {
             $out .= " action=\"{$this->action}\"";
         } else {
             $action = \Url::create(\Request::getUrl());
             $out .= " action=\"{$action}\"";
         }
 
-        if(! is_null($this->enctype)){
+        if (!is_null($this->enctype)) {
             $out .= " enctype=\"{$this->enctype}\"";
         }
 
-        if(! is_null($this->class)){
+        if (!is_null($this->class)) {
             $out .= " class=\"{$this->class}\"";
         }
 
-        if(! is_null($this->id)){
+        if (!is_null($this->id)) {
             $out .= " id=\"{$this->id}\"";
         }
 
         $out .= ">";
 
-        if(! $this->hasSubmitButton){
+        if (!$this->hasSubmitButton) {
             $this->field((new SubmitInput())
                 ->name('submit')
                 ->value('submit'));
         }
 
-        $out .= implode('<br/>', array_map(function(AbstractField $f){
-            return $f->build();
-        }, $this->fields) );
+
+        $out .= implode('', array_map(function (AbstractField $f) {
+            return $f->getBefore() . $f->build() . $f->getAfter() . ($f->isInline() ? '' : '<br/>');
+        }, $this->fields));
 
         $out .= "</form>";
 
@@ -169,15 +203,15 @@ class Form{
 
     private function hydrateModel(AbstractField $input)
     {
-        if($input->getFieldType() === AbstractField::INPUT && $input->getType() === AbstractInputField::SUBMIT){
+        if ($input->getFieldType() === AbstractField::INPUT && $input->getType() === AbstractInputField::SUBMIT) {
             return;
         }
 
-        $fieldName = ucfirst(strtolower($input->getName()));
+        $fieldName = ucfirst(strtolower(str_replace('[]', '', $input->getName())));
         $actualValue = $this->model->{"get{$fieldName}"}();
         $fieldEntry = $input->getValue();
 
-        if($actualValue === $fieldEntry)
+        if ($actualValue === $fieldEntry)
             return;
 
         $this->model->{"set{$fieldName}"}($fieldEntry);
@@ -185,14 +219,15 @@ class Form{
 
     public function handleRequest(Request $request)
     {
+
         $method = strtolower($this->method);
 
-        if(strtolower($request->getMethod()) !== $method){
+        if (strtolower($request->getMethod()) !== $method) {
             $this->isSubmitted = false;
             return;
         }
 
-        switch ($method){
+        switch ($method) {
             case 'get':
                 $payload = $request->getGet();
                 break;
@@ -204,29 +239,30 @@ class Form{
         }
 
         foreach ($this->fields as $field) {
-            $payloadEntry = $payload[$field->getName()];
+            $fieldName = str_replace('[]', '', $field->getName());
+            $payloadEntry = $payload[$fieldName];
 
-            if(! isset($payload[$field->getName()])){
+            if (!isset($payload[$fieldName])) {
                 $entry = null;
-            } else if(is_string($payloadEntry) && strlen($payloadEntry) === 0){
+            } else if (is_string($payloadEntry) && strlen($payloadEntry) === 0) {
                 $entry = null;
             } else {
                 $entry = $payloadEntry;
             }
 
-            if(! $field->validateEntry($entry)){
+            if (!$field->validateEntry($entry)) {
                 $this->isSubmitted = false;
                 return false;
             }
         }
 
-        foreach ($this->fields as $field){
+        foreach ($this->fields as $field) {
+            $fieldName = str_replace('[]', '', $field->getName());
+            $payloadEntry = $payload[$fieldName];
 
-            $payloadEntry = $payload[$field->getName()];
-
-            if(! isset($payload[$field->getName()])){
+            if (!isset($payload[$fieldName])) {
                 $entry = null;
-            } else if(is_string($payloadEntry) && strlen($payloadEntry) === 0){
+            } else if (is_string($payloadEntry) && strlen($payloadEntry) === 0) {
                 $entry = null;
             } else {
                 $entry = $payloadEntry;

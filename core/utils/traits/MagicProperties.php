@@ -5,11 +5,12 @@ namespace Core\Utils\Traits;
 trait MagicProperties {
 
     public function __set(string $key, $value){
-        $this->{$key} =  $value;
-        $this->set($key, $value);
+        $this->{$key} = $value;
+        //$this->set($key, $value);
     }
 
     public function __get(string $key){
+        //echo "UppletContainer::__get($key) : {$this->{$key}}\n";
         return $this->{$key};
     }
 
@@ -21,14 +22,14 @@ trait MagicProperties {
                     return $this->{$m};
                 case 'set':
                     if(count($param)){
-                        $this->set($m, $param[0]);
+                        //$this->set($m, $param[0]);
                         return $this->{$m} = $param[0];
                     }
-                    return $this->get($method);
+                    break;
             }
         }
         if(count($param)){
-            $this->set($method, $param[0]);
+            //$this->set($method, $param[0]);
             return $this->{$method} =  $param[0];
         }
         return $this->{$method};

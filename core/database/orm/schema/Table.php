@@ -13,6 +13,7 @@ class Table implements Statementizable, Schematizable {
 
     private $constraints;
     private $pkConstraint;
+    private $pkFields;
     private $keyConstraint;
     private $uniqueConstraint;
 
@@ -24,6 +25,7 @@ class Table implements Statementizable, Schematizable {
         $this->fields = [];
         $this->constraints = [];
         $this->constraintFields = [];
+        $this->pkFields = [];
     }
 
     public function getName(){
@@ -52,9 +54,13 @@ class Table implements Statementizable, Schematizable {
         else{
             $this->pkConstraint->addField($field->getName());
         }
+        $this->pkFields[] = $field;
     }
 
     public function indexKey(Field $field){
+        if(in_array($field, $this->pkFields)){
+            return;
+        }
         if(is_null($this->keyConstraint)){
             $this->keyConstraint = new InlineConstraint(InlineConstraint::INDEX, $field->getName());
         }
@@ -64,6 +70,9 @@ class Table implements Statementizable, Schematizable {
     }
 
     public function uniqueKey(Field $field){
+        if(in_array($field, $this->pkFields)){
+            return;
+        }
         if(is_null($this->uniqueConstraint)){
             $this->uniqueConstraint = new InlineConstraint(InlineConstraint::UNIQUE, $field->getName());
         }
@@ -90,12 +99,15 @@ class Table implements Statementizable, Schematizable {
     }
 
 
-    /**
-     * @Override
-     * @return array
-     */
-    public function statement()
-    {
+    public function constraintStatements(): array{
+
+        return array_map(function(Constraint $c){
+            return $c->statement();
+        }, $this->constraints);
+
+    }
+
+    public function tableStatement(){
         $fieldsDescribed = array_map(function(Field $e){
             return $e->statement();
         }, $this->fields);
@@ -105,15 +117,17 @@ class Table implements Statementizable, Schematizable {
         if($this->uniqueConstraint instanceof InlineConstraint) $fieldsDescribed[] = $this->uniqueConstraint->statement();
 
         $fieldsSql = "\t" . implode(",\n\t",$fieldsDescribed);
-        $tableSql = "CREATE TABLE {$this->name} (\n {$fieldsSql} \n) ENGINE=InnoDB;";
+        return "CREATE TABLE {$this->name} (\n {$fieldsSql} \n) ENGINE=InnoDB;";
+    }
 
-        $constraintsSql = array_map(function(Constraint $c){
-            return $c->statement();
-        }, $this->constraints);
 
-        $transaction = array_merge([$tableSql], ... $constraintsSql);
-
-        return $transaction;
+    /**
+     * @Override
+     * @return array
+     */
+    public function statement()
+    {
+        return array_merge([$this->tableStatement()], ... $this->constraintStatements());
     }
 
     /**

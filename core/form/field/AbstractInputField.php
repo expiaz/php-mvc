@@ -13,9 +13,10 @@ abstract class AbstractInputField extends AbstractField{
     const RESET = 'reset';
     const HIDDEN = 'hidden';
     const BOOLEAN = 'boolean';
+    const CHECKBOX = 'checkbox';
+    const RADIO = 'radio';
 
     protected $type;
-    protected $value;
     protected $pattern;
     protected $title;
 
@@ -25,7 +26,6 @@ abstract class AbstractInputField extends AbstractField{
     {
         parent::__construct(AbstractField::INPUT);
         $this->type = $type;
-        $this->value = null;
         $this->placeholder = null;
         $this->pattern = null;
         $this->title = null;
@@ -40,17 +40,6 @@ abstract class AbstractInputField extends AbstractField{
     {
         return $this->type;
     }
-
-
-    public function value($value){
-        $this->value = (string) $value;
-        return $this;
-    }
-
-    public function getValue(){
-        return $this->value;
-    }
-
 
     public function placeholder($placeholder)
     {
@@ -114,10 +103,6 @@ abstract class AbstractInputField extends AbstractField{
         $name = ! is_null($this->name) ? $this->name : $this->type;
 
         $out = "<input type=\"{$this->type}\" name=\"{$name}\"";
-
-        if(! is_null($this->value)){
-            $out .= " value=\"{$this->value}\"";
-        }
 
         if(! is_null($this->pattern)){
             $out .= " pattern=\"{$this->pattern}\"";

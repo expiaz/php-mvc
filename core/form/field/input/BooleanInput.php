@@ -17,8 +17,8 @@ class BooleanInput extends AbstractInputField{
 
         $name = ! is_null($this->name) ? $this->name : $this->type;
 
-        $yes = "<input type=\"{$this->type}\" name=\"{$name}\" value=\"1\" {$baseProps}/>Yes";
-        $no = "<input type=\"{$this->type}\" name=\"{$name}\" value=\"0\" {$baseProps} selected/>No";
+        $yes = "<input type=\"radio\" name=\"{$name}\" value=\"1\" {$baseProps}/>Yes";
+        $no = "<input type=\"radio\" name=\"{$name}\" value=\"0\" {$baseProps} selected/>No";
 
         return $this->addLabel($yes.$no);
     }

@@ -30,6 +30,7 @@ final class View
         if (! file_exists($path)) {
             $path = VIEW . 'index.php';
         }
+
         $this->path = $path;
     }
 
@@ -53,6 +54,7 @@ final class View
     }
 
     private function capture(array &$vars): string{
+
         $level = ob_get_level();
         ob_start();
         extract($vars, EXTR_SKIP);

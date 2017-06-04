@@ -68,13 +68,27 @@ class NumberInput extends AbstractInputField{
 
     public function validateEntry($entry): bool
     {
-        if($this->max > 0 && $entry > $this->max){
-            return false;
-        }
+        /*if(is_array($entry)){
+            foreach ($entry as $e){
+                if($this->max > 0 && $e > $this->max){
+                    return false;
+                }
 
-        if($this->min > 0 && $entry < $this->min){
-            return false;
+                if($this->min > 0 && $e < $this->min){
+                    return false;
+                }
+            }
         }
+        else {
+            if($this->max > 0 && $entry > $this->max){
+                return false;
+            }
+
+            if($this->min > 0 && $entry < $this->min){
+                return false;
+            }
+        }*/
+
 
         return parent::validateEntry($entry);
     }

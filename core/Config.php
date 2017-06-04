@@ -16,7 +16,7 @@ final class Config implements ArrayAccess, MagicAccessInterface {
         $c = [
             'database' => [
                 'sgbd' => 'mysql',
-                'name' => 'orm_test',
+                'name' => 'junior_entreprise_bis',
                 'host' => 'localhost',
                 'charset' => 'UTF8',
                 'user' => 'root',

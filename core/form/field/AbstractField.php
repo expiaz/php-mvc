@@ -2,8 +2,6 @@
 
 namespace Core\Form\Field;
 
-use function PHPSTORM_META\type;
-
 abstract class AbstractField{
 
     const INPUT = 'input';
@@ -26,17 +24,61 @@ abstract class AbstractField{
     protected $data;
 
     protected $focus;
+    protected $inline;
+
+    protected $before;
+    protected $after;
 
     protected function __construct($fieldType)
     {
         $this->field = $fieldType;
-        $this->label = false;
+        $this->label = null;
         $this->data = [];
         $this->required = false;
         $this->disabled = false;
         $this->focus = false;
         $this->name = null;
         $this->value = null;
+        $this->inline = false;
+        $this->before = "";
+        $this->after = "";
+    }
+
+    public function appendBefore(string $data){
+        return $this->before($data);
+    }
+
+    public function prependBefore(string $data){
+        $this->before = $data . $this->before;
+        return $this;
+    }
+
+    public function before(string $data){
+        $this->before .= $data;
+        return $this;
+    }
+
+    public function getBefore(){
+        return $this->before;
+    }
+
+
+    public function appendAfter(string $data){
+        return $this->after($data);
+    }
+
+    public function prependAfter(string $data){
+        $this->after = $data . $this->after;
+        return $this;
+    }
+
+    public function after(string $data){
+        $this->after .= $data;
+        return $this;
+    }
+
+    public function getAfter(){
+        return $this->after;
     }
 
 
@@ -141,12 +183,21 @@ abstract class AbstractField{
         return $this->focus;
     }
 
+    public function inline($in = true){
+        $this->inline = (bool) $in;
+        return $this;
+    }
+
+    public function isInline(){
+        return $this->inline;
+    }
+
 
 
     protected function buildLabel(): string{
         if(! is_null($this->label)){
             $this->id = ! is_null($this->id) ? $this->id : $this->name;
-            return "<label for=\"{$this->id}\">{$this->name}</label><br/>";
+            return "<label for=\"{$this->id}\">{$this->label}</label>" . ($this->inline ? "" : "<br/>");
         }
         return '';
     }
@@ -158,7 +209,7 @@ abstract class AbstractField{
             $out .= " name=\"{$this->name}\"";
         }
 
-        if(! is_null($this->value)){
+        if(! is_null($this->value) && ! is_array($this->value)){
             $out .= " value=\"{$this->value}\"";
         }
 

@@ -109,6 +109,8 @@ class Field implements Statementizable, Schematizable {
         $this->table->primaryKey($this);
         $this->inlineConstraints[] = Constraint::PRIMARY_KEY;
         $this->nullable = false;
+        $this->type('INT');
+        $this->length(11);
         return $this;
     }
 
@@ -200,7 +202,7 @@ class Field implements Statementizable, Schematizable {
         $props = [];
         $props[] = $this->name;
         $props[] = $this->length ? "{$this->type}({$this->length})" : $this->type;
-        $props[] = $this->default ? $this->nullable ? "DEFAULT NULL" : "DEFAULT {$this->default}" : $this->nullable === true ? "NOT NULL" : NULL;
+        $props[] = $this->default ? ($this->nullable ? "DEFAULT NULL" : "DEFAULT {$this->default}") : ($this->nullable === true ? "DEFAULT NULL" : "NOT NULL");
         $props[] = $this->autoIncrement ? "AUTO_INCREMENT" : NULL;
 
         $fieldDecalaration = implode(' ', array_filter($props, function($e){

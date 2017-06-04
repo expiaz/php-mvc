@@ -2,30 +2,30 @@
 
 namespace App\Model;
 
-use Core\Config;
 use Core\Mvc\Model\Model;
 
 class UserModel extends Model {
 
-    private $name;
+    private $nom;
     private $login;
     private $password;
+    private $admin;
 
     /**
      * @return mixed
      */
-    public function getName()
+    public function getNom()
     {
-        return $this->name;
+        return $this->nom;
     }
 
     /**
-     * @param mixed $name
+     * @param mixed $nom
      */
-    public function setName($name)
+    public function setNom($nom)
     {
-        parent::setter('name', $name);
-        $this->name = $name;
+        parent::setter('nom', $nom);
+        $this->nom = $nom;
     }
 
 
@@ -62,6 +62,23 @@ class UserModel extends Model {
     {
         parent::setter('password', $password);
         $this->password = $password;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function isAdmin()
+    {
+        return $this->admin;
+    }
+
+    /**
+     * @param mixed $admin
+     */
+    public function setAdmin($admin)
+    {
+        parent::setter('admin', $admin);
+        $this->admin = (bool) $admin;
     }
 
 
